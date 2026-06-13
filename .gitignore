@@ -1,0 +1,9 @@
+# Consumer artifacts (this repo dogfoods other skill packs)
+.agents/
+skills-lock.json
+
+# Local scratch (issues, notes, working files)
+.scratch/
+
+# OS
+.DS_Store

@@ -1,0 +1,11 @@
+{
+  "name": "ghost-skills",
+  "owner": { "name": "Chris Hillman" },
+  "plugins": [
+    {
+      "name": "ghost-skills",
+      "source": "./",
+      "description": "Methodology skills for data-engineering agents — profiling, requirements, dimensional & vault modeling, keys, SCDs, testing, incidents, performance."
+    }
+  ]
+}

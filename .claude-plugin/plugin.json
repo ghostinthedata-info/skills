@@ -1,0 +1,18 @@
+{
+  "name": "ghost-skills",
+  "skills": [
+    "./skills/discovery/profile-data",
+    "./skills/discovery/gather-requirements",
+    "./skills/discovery/refine-context",
+    "./skills/modeling/dimensional-modeling",
+    "./skills/modeling/data-vault",
+    "./skills/modeling/keys",
+    "./skills/modeling/slowly-changing-dimensions",
+    "./skills/quality/test-data",
+    "./skills/quality/performance-tuning",
+    "./skills/operations/incident-comms",
+    "./skills/operations/pipeline-design",
+    "./skills/operations/data-as-a-product",
+    "./skills/setup/setup-ghost-skills"
+  ]
+}
