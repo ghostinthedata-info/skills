@@ -1,3 +1,4 @@
+[![skills.sh](https://www.skills.sh/b/ghostinthedata-info/skills)](https://www.skills.sh/ghostinthedata-info/skills)
 ![Ghost Skills](https://img.shields.io/badge/skills-for%20data%20engineers-blue)
 
 # Ghost Skills — Data-Engineering Skills For AI Coding Agents
