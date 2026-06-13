@@ -4,21 +4,20 @@
 
 Methodology and practice skills for AI coding agents — tuned for data
 engineering, from the [Ghost in the Data](https://ghostinthedata.info) blog.
-Repo structure and install flow modeled on
-[mattpocock/skills](https://github.com/mattpocock/skills), but focused on the
+Repo structure focused on the
 durable, vendor-neutral parts of the data craft: profiling, requirements,
 dimensional & vault modeling, keys, slowly changing dimensions, testing,
 incident communications, performance, and data products.
 
 These skills are deliberately **tool-agnostic**. There is no Snowflake-only
 or BigQuery-only logic baked in — fork this repo and add a cloud-specific
-layer for GCP / Azure / AWS / Databricks if you want (see `CONTRIBUTING.md`).
+layer for GCP / Azure / AWS / Databricks if you want.
 
 They are small, composable, and opinionated. Hack on them. Make them yours.
 
 ## Quickstart (30-second setup)
 
-1. Run the installer (uses the open [skills.sh](https://skills.sh) CLI):
+1. Run the installer:
 
    ```
    npx skills@latest add ghostinthedata-info/skills
@@ -44,8 +43,7 @@ They are small, composable, and opinionated. Hack on them. Make them yours.
 
 ### AGENTS.md vs CLAUDE.md — the choice
 
-`/setup-ghost-skills` follows a strict rule (see
-[ADR-0002](docs/adr/0002-claude-vs-agents-file-choice.md)):
+`/setup-ghost-skills` follows a strict rule:
 
 - If `CLAUDE.md` already exists → it edits `CLAUDE.md`.
 - Else if `AGENTS.md` exists → it edits `AGENTS.md`.
@@ -78,24 +76,26 @@ fixes so your agent stops re-learning them every session.
 ## Skill catalogue
 
 ### Discovery
-- **[profile-data](skills/discovery/profile-data/SKILL.md)** — Profile a new dataset before you build on it: row counts, cardinality, null/blank analysis, key-uniqueness, distributions, and an optional saved baseline for drift detection.
-- **[gather-requirements](skills/discovery/gather-requirements/SKILL.md)** — Elicit and pin down requirements for a pipeline or model: grain, sources, consumers, definitions, freshness/volume SLAs, historization, and acceptance criteria — one question at a time.
-- **[refine-context](skills/discovery/refine-context/SKILL.md)** — Stress-test a data plan against the project's domain model and documented decisions, sharpen terminology, and update `CONTEXT.md` and ADRs inline as decisions crystallise.
+- **[profile-data](skills/data-engineering/profile-data/SKILL.md)** — Profile a new dataset before you build on it: row counts, cardinality, null/blank analysis, key-uniqueness, distributions, and an optional saved baseline for drift detection.
+- **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — Elicit and pin down requirements for a pipeline or model: grain, sources, consumers, definitions, freshness/volume SLAs, historization, and acceptance criteria — one question at a time.
+- **[refine-context](skills/data-engineering/refine-context/SKILL.md)** — Stress-test a data plan against the project's domain model and documented decisions, sharpen terminology, and update `CONTEXT.md` and ADRs inline as decisions crystallise.
 
 ### Modeling
-- **[dimensional-modeling](skills/modeling/dimensional-modeling/SKILL.md)** — Kimball's four-step process: select the business process, declare the grain, identify dimensions, identify facts. Fact-table types, conformed dimensions, and the bus matrix.
-- **[data-vault](skills/modeling/data-vault/SKILL.md)** — Hubs, links, satellites; raw vault vs business vault; business-key identification; when Data Vault beats dimensional and when it doesn't.
-- **[keys](skills/modeling/keys/SKILL.md)** — Business, natural, surrogate, composite, and durable ("super-natural") keys: when to use which, and the anti-patterns that bite later.
-- **[slowly-changing-dimensions](skills/modeling/slowly-changing-dimensions/SKILL.md)** — SCD types 0–7, trade-offs, and the Healing Tables approach to deterministic, path-independent SCD2.
+- **[dimensional-modeling](skills/data-engineering/dimensional-modeling/SKILL.md)** — Kimball's four-step process: select the business process, declare the grain, identify dimensions, identify facts. Fact-table types, conformed dimensions, and the bus matrix.
+- **[fact-table-design](skills/data-engineering/fact-table-design/SKILL.md)** — Choose the right fact-table grain and type (transaction, periodic snapshot, accumulating snapshot) and classify each measure as additive, semi-additive, or non-additive. Factless facts and degenerate dimensions.
+- **[keys](skills/data-engineering/keys/SKILL.md)** — Business, natural, surrogate, composite, and durable ("super-natural") keys: when to use which, and the anti-patterns that bite later.
+- **[slowly-changing-dimensions](skills/data-engineering/slowly-changing-dimensions/SKILL.md)** — SCD types 0–7, trade-offs, and the Healing Tables approach to deterministic, path-independent SCD2.
 
 ### Quality
-- **[test-data](skills/quality/test-data/SKILL.md)** — A test plan you can defend: what to test (uniqueness, referential integrity, nulls, accepted values, freshness, volume/variance), severity levels, and where tests live (Write-Audit-Publish).
-- **[performance-tuning](skills/quality/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. Tool-agnostic.
+- **[test-data](skills/data-engineering/test-data/SKILL.md)** — A test plan you can defend: what to test (uniqueness, referential integrity, nulls, accepted values, freshness, volume/variance), severity levels, and where tests live (Write-Audit-Publish).
+- **[performance-tuning](skills/data-engineering/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. Tool-agnostic.
+- **[spark-performance](skills/data-engineering/spark-performance/SKILL.md)** — Tune distributed Spark jobs: partition counts, minimising shuffles, broadcasting small tables, handling skew, deliberate caching, narrow vs wide transformations.
 
 ### Operations
-- **[incident-comms](skills/operations/incident-comms/SKILL.md)** — The communications workflow for a data incident: who to notify and when, severity classification, update cadence, copy-paste templates, and the post-incident review.
-- **[pipeline-design](skills/operations/pipeline-design/SKILL.md)** — Idempotency, reproducibility, backfills, and defensive engineering as default design principles.
-- **[data-as-a-product](skills/operations/data-as-a-product/SKILL.md)** — Data mesh thinking: domain ownership, data-as-a-product (discoverable, trustworthy, SLAs), self-serve platform, federated computational governance.
+- **[incident-comms](skills/data-engineering/incident-comms/SKILL.md)** — The communications workflow for a data incident: who to notify and when, severity classification, update cadence, copy-paste templates, and the post-incident review.
+- **[pipeline-design](skills/data-engineering/pipeline-design/SKILL.md)** — Idempotency, reproducibility, backfills, and defensive engineering as default design principles.
+- **[data-as-a-product](skills/data-engineering/data-as-a-product/SKILL.md)** — Data mesh thinking: domain ownership, data-as-a-product (discoverable, trustworthy, SLAs), self-serve platform, federated computational governance.
+- **[data-security-classification](skills/data-engineering/data-security-classification/SKILL.md)** — Classify data by sensitivity and apply the right controls (access, masking, encryption, auditing) driven by regulatory and confidentiality requirements. The four A's, PII/PHI, least privilege.
 
 ### Setup
 - **[setup-ghost-skills](skills/setup/setup-ghost-skills/SKILL.md)** — Scaffold the per-repo config (warehouse/dialect, tooling, domain-doc layout) the other skills consume. Run once per repo.
@@ -107,9 +107,6 @@ Paradigms drawn from **Chris Hillman's _Ghost in the Data_**
 "Don't Go Dark", the pipeline shifting-right framing, and the data-profiling
 and data-vault posts. Modeling grounded in the **Kimball Group**
 (kimballgroup.com) dimensional-modeling techniques, **Dan Linstedt's Data
-Vault 2.0**, and **Zhamak Dehghani's data mesh** principles. Repo structure
-and install flow modeled on **Matt Pocock's**
-[skills](https://github.com/mattpocock/skills) — if you want general
-engineering skills (TDD, diagnosis, planning interviews), install his pack.
+Vault 2.0**, and **Zhamak Dehghani's data mesh** principles. 
 
 MIT licensed. Forks for cloud-specific extensions are encouraged.

@@ -1,42 +1,44 @@
-# Project context (ubiquitous language)
+# Ghost Skills
 
-Shared glossary for agents and humans working in this repo. Keep entries
-domain-level — no implementation detail.
+The publisher repo for the **ghost-skills** pack: methodology and practice skills for AI coding agents, tuned for data engineering. Skills are organized into bucket folders under `skills/`, catalogued in `README.md`, and registered in `.claude-plugin/plugin.json`.
 
-## Terms
+## Language
 
-- **Publisher repo** — this repo. It authors and publishes skills; other
-  people install them into their own projects. (As opposed to a *consumer
-  repo*, which installs skills produced elsewhere.)
-- **Consumer repo** — any project that installs skills from a publisher repo
-  via the skills.sh CLI (`npx skills@latest add <owner>/<repo>`).
-- **Skill** — a single `SKILL.md` (plus optional companion files) under
-  `skills/<bucket>/<name>/`, with `name` + `description` frontmatter. The
-  unit of installation.
-- **Bucket** — a top-level grouping folder under `skills/` that organises
-  skills by purpose. Published buckets appear in the README and plugin
-  manifest; unpublished buckets (e.g. personal, deprecated) do not.
-- **Setup skill** — the one skill a consumer must run once per repo. It
-  interviews the user one question at a time and writes per-repo
-  configuration that the other skills read. Here: `setup-ghost-skills`.
-- **Ghost Skills** — the name of this skill pack (plugin name
-  `ghost-skills`), published from the `ghostinthedata-info/skills` GitHub
-  org/repo and branded after the *Ghost in the Data* blog
-  (ghostinthedata.info).
-- **refine-context** — this pack's interview skill that stress-tests a data
-  plan against the consumer repo's glossary and decisions. Deliberately *not*
-  named `grill-with-docs`, to avoid colliding with Matt Pocock's skill of
-  that name.
-- **Repo-level facts** — facts true of the whole consumer repo, captured once
-  by the setup skill: warehouse platform & SQL dialect, transform/
-  orchestration tooling, domain-doc layout.
-- **Pipeline-level facts** — facts that vary per pipeline or source system,
-  captured by `gather-requirements` per pipeline: freshness SLA, volume SLA,
-  grain, sources, historization. Never asked at setup time.
-- **Baseline (profile)** — the saved, aggregates-only output of profiling a
-  table (counts, cardinalities, null rates, ranges — never sample rows, no
-  observed value sets for PII columns). Saved only with the user's consent;
-  later diffed for drift detection and volume/variance thresholds.
-- **Soft reference** — a mention of another skill phrased as enrichment
-  ("see `keys` if installed"), never as a dependency. Every skill must remain
-  self-sufficient for its core decision, because consumers install subsets.
+**Skill**:
+A single agent capability — a folder under `skills/<bucket>/<name>/` containing a `SKILL.md` plus any templates or reference files it needs. Self-sufficient for its core decision.
+_Avoid_: command, plugin, behavior
+
+**Bucket**:
+A top-level category folder under `skills/` that groups skills by purpose: `data-engineering/`, `setup/`, `productivity/`, and `in-progress/`.
+_Avoid_: category, group, pack folder
+
+**Pack**:
+The published, installable collection of skills as a whole (the "ghost-skills" pack). Distinct from a single bucket.
+_Avoid_: bundle, collection
+
+**Soft reference**:
+A cross-skill mention written so the referenced skill is helpful but not required — the referencing skill still completes its core decision if the other skill is absent. The default style for all cross-skill references.
+_Avoid_: hard reference, dependency link
+
+**Hard dependency**:
+A skill that cannot function correctly without per-repo config seeded by `/setup-ghost-skills` (e.g. it must publish to a specific issue tracker or apply a specific label). These carry an explicit setup pointer.
+_Avoid_: required dependency
+
+**Soft dependency**:
+A skill that only uses per-repo config to sharpen its output and degrades gracefully without it. Refers to project docs in vague prose, with no explicit setup pointer.
+_Avoid_: optional dependency
+
+**Setup pointer**:
+The explicit one-liner ("… run `/setup-ghost-skills` if not") included only in hard-dependency skills.
+_Avoid_: setup hint, config note
+
+## Relationships
+
+- The **pack** is divided into **buckets**; each **bucket** holds many **skills**
+- A **skill** references other **skills** via **soft references** by default
+- A **hard dependency** skill carries a **setup pointer**; a **soft dependency** skill does not
+- Skills in the `in-progress/` **bucket** are not part of the published **pack** until promoted out
+
+## Flagged ambiguities
+
+- "soft reference" (a writing style for cross-skill mentions) vs "soft dependency" (a skill's reliance on per-repo config) — related but distinct; do not conflate.
