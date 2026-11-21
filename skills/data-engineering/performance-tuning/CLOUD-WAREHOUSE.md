@@ -5,8 +5,10 @@ model is different from an OLTP RDBMS: there are **no traditional indexes**,
 you don't tune locks, and compute is elastic and **billed by time or bytes**.
 The levers are **pruning** (scan less data), **clustering/partitioning**,
 **right-sizing compute**, and **not re-computing** what you can materialise or
-cache. "Faster" and "cheaper" are usually the same fix here — less data
-scanned.
+cache. "Faster" and "cheaper" often share a fix — less data
+scanned — but not always: idle compute, background services, and wide
+tables that are fast to query but costly to maintain cost money without being
+slow.
 
 ## Contents
 1. Get the profile / plan
@@ -137,8 +139,9 @@ is in service of scanning fewer micro-partitions/blocks and fewer columns.
 - **Don't fix a scan problem with bigger compute.** A full scan or skew costs
   the same proportion of a bigger warehouse — fix pruning/skew first, *then*
   size for the genuinely compute-bound remainder.
-- **Cache-friendliness**: deterministic queries reuse result caches; warm pools
-  for repeated batch.
+- **Cache-friendliness**: deterministic queries reuse result caches. Keep
+  interactive/BI compute warm between bursts; let batch compute suspend
+  between runs.
 
 ## 8. Cost = performance
 
@@ -146,7 +149,8 @@ In these engines the bill is the cleanest performance metric you have.
 
 - Baseline in **bytes scanned / slot-ms / credits**, not just wall-clock.
 - Snowflake: `ACCOUNT_USAGE.QUERY_HISTORY` (credits, spill, partitions scanned)
-  → find the top-cost queries; they're usually the top-slow ones.
+  → find the top-cost queries. They're often the top-slow ones, but rank by
+  cost too: many fast queries can cost more than one slow one.
 - BigQuery: `INFORMATION_SCHEMA.JOBS` by `total_bytes_billed` / `total_slot_ms`.
 - Redshift: `SYS_QUERY_HISTORY` / `SVL_QUERY_SUMMARY` by scan and exec time.
 - Set a **budget alert** on the dominant workload and a runtime budget on the

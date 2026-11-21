@@ -9,9 +9,9 @@ Map feature names to your engine using the reference files in this directory.
 ## 1. Measure — establish a baseline
 
 - [ ] Instrument every pipeline stage: **duration** AND **queue/wait time** separately.
-- [ ] Pull run history for the last 2–4 weeks; note any trend (growing? flat? spiking?).
+- [ ] Pull run history for the last 30–60 days; plot completion time per run and note the trend (growing? flat? spiking?).
 - [ ] Record real numbers — never eyeball or estimate from memory.
-- [ ] Identify the **3–5 models/stages that dominate 60–80% of total runtime** — these are the only candidates worth touching.
+- [ ] Identify the **3–5 models/stages that dominate 60–80% of total runtime** — these are the candidates — the critical path decides which are worth touching.
 
 ---
 
@@ -53,7 +53,7 @@ Apply each fix against the baseline, re-measure, then decide keep/revert.
 
 ### Incremental processing
 - [ ] Growing fact tables switched from full rebuild to **incremental + idempotent merge**.
-- [ ] Watermark column identified and tested for completeness (late-arriving rows?).
+- [ ] Watermark column identified and tested for completeness; a lookback window covers late-arriving rows, and a periodic full refresh corrects drift.
 
 ### Join quality
 - [ ] Joining on **unique keys** — confirm uniqueness (see `profile-data`/`test-data` if installed).
@@ -64,7 +64,7 @@ Apply each fix against the baseline, re-measure, then decide keep/revert.
 ### Projection & filtering
 - [ ] `WHERE` pushed down as early as possible.
 - [ ] Only columns actually needed in `SELECT`.
-- [ ] Intermediate layers materialised as tables rather than chained views.
+- [ ] Materialisation chosen per model: single-consumer steps inlined; a table only when it is slow to build (~30s+) and read more than once between builds.
 
 ### Dependency diet
 - [ ] Review upstream deps: remove any that no longer reflect real reads (phantom dependencies).
