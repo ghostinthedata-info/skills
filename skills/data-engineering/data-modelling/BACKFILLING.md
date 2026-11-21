@@ -42,8 +42,9 @@ history; fix the logic, reprocess the range, and the dimension "heals."
    (`prev IS DISTINCT FROM curr`).
 2. **Time slices** — `LEAD()` over the change points to derive
    `valid_from`/`valid_to` (left-closed/right-open).
-3. **Join sources** — build a unified timeline; as-of join each source and
-   **document attribute ownership** (which source wins per column).
+3. **Join sources** — union every source's change points into one timeline,
+   then as-of join each source back onto it, and **document attribute
+   ownership** (which source wins per column). See *Several sources* below.
 4. **Hash** — a key-hash for identity and a row-hash for change detection;
    `COALESCE` NULLs to a sentinel so `NULL` ≠ `''`.
 5. **Compress** — collapse consecutive identical states (islands-and-gaps),
@@ -86,6 +87,25 @@ FROM changes;
 `ROW_NUMBER() = 1` finds the first version; testing `prev_region IS NULL`
 instead also fires whenever the previous value was a real NULL. If your
 engine has no named `WINDOW` clause, repeat the `OVER (…)` in each column.
+
+## Several sources
+
+Never load several sources straight into one SCD2. Each load closes the
+others' versions, and the same instant ends up with different attribute
+combinations depending on which source ran first — the history becomes a
+record of load order. Instead, build one timeline: union the change points
+from every source, slice it once (step 2), and as-of join each source back to
+take the columns it owns. Step 3 of
+[HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) shows the shape.
+
+## Snapshot sources
+
+When a source only gives full snapshots (no change timestamps), derive the
+change points by diffing consecutive snapshots per key: a row whose tracked
+values differ from the previous snapshot's is a change at that snapshot date,
+and a key that was in the previous snapshot but is missing from this one has
+gone — close its interval at this snapshot's date (the *contiguous presence*
+precondition). Step 1b of the template has both queries.
 
 ## Test harness — rebuild into a copy, never in place
 

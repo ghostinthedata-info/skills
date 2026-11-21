@@ -36,6 +36,18 @@ skill.)
 * **Degenerate dimension** — a dimension key with no attributes (order number)
   kept on the fact row; don't build a table for it.
 
+## The date dimension — generate it
+
+Every fact table needs a date dimension, and it's the one dimension you build
+rather than source. Generate it: one row per day across the full range your
+facts can touch (with headroom), carrying the calendar and fiscal attributes
+people slice by — day of week, week, month, quarter, fiscal period,
+`is_weekend`, holidays from a maintained calendar — plus a ghost row for
+unknown dates. It's a reference dimension: built once and re-run only to
+extend the range or add attributes (a new holiday calendar). Audit it before
+publish like any other table: one row per day in the range, no gaps, a unique
+date key.
+
 ## Conformed dimensions & the bus matrix
 
 * A **conformed dimension** (date, customer, product) shares identical keys

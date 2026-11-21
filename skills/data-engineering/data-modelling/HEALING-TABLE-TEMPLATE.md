@@ -49,6 +49,45 @@ WHERE prev_state IS NULL                            -- first appearance
 > equivalent if it lacks it (e.g. `NOT (a <=> b)` in MySQL, or wrap both sides
 > in `COALESCE(..., <sentinel>)`).
 
+### Step 1b — Snapshot sources (no change timestamps)
+
+Diff consecutive snapshots per key. `{{snapshots}}` has one row per key per
+snapshot taken; `snapshot_calendar` has one row per snapshot taken, with the
+date of the snapshot before it (`prev_snapshot_date`).
+
+```sql
+-- changes and returns: values differ from the key's previous snapshot, or the
+-- key is back after missing one or more snapshots
+SELECT {{durable_key}}, snapshot_date AS effective_from, {{tracked_cols}},
+       FALSE AS is_deleted
+FROM (
+  SELECT s.*, cal.prev_snapshot_date,
+         ROW_NUMBER()                         OVER w AS version_no,
+         LAG(s.snapshot_date)                 OVER w AS key_prev_snapshot,
+         LAG({{tracked_cols_concat_or_hash}}) OVER w AS prev_state
+  FROM {{snapshots}} s
+  JOIN snapshot_calendar cal ON cal.snapshot_date = s.snapshot_date
+  WINDOW w AS (PARTITION BY {{durable_key}} ORDER BY s.snapshot_date)
+) t
+WHERE version_no = 1                                            -- first appearance
+   OR key_prev_snapshot <> prev_snapshot_date                   -- back after a gap
+   OR {{tracked_cols_concat_or_hash}} IS DISTINCT FROM prev_state;   -- changed
+
+-- disappearances: in the previous snapshot, missing from this one
+SELECT prev.{{durable_key}}, cal.snapshot_date AS effective_from, TRUE AS is_deleted
+FROM snapshot_calendar cal
+JOIN {{snapshots}} prev
+  ON prev.snapshot_date = cal.prev_snapshot_date
+LEFT JOIN {{snapshots}} cur
+  ON cur.{{durable_key}} = prev.{{durable_key}}
+ AND cur.snapshot_date   = cal.snapshot_date
+WHERE cur.{{durable_key}} IS NULL;
+```
+
+Union the two as the effectivity table, and include `is_deleted` in the
+tracked columns and the row hash, so a deleted slice is never compressed into
+its neighbours in Step 5.
+
 ---
 
 ## Step 2 — Time slices (derive validity intervals)
@@ -108,7 +147,9 @@ LEFT JOIN source_b b
 
 A **key hash** for identity and a **row hash** over the tracked columns for
 change detection. COALESCE NULLs to a sentinel so `NULL` and `''` don't
-collide.
+collide. Hash business attributes only (no keys or load metadata), in a fixed
+column order — and remember that adding a column to the row hash changes
+every row's hash, so rehash history when you add one.
 
 ```sql
 SELECT

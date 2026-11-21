@@ -40,3 +40,16 @@ past date?*
 
 Record the chosen type beside each attribute (column docs or the model's
 metadata) so the next engineer doesn't have to rediscover it.
+
+## Alternative to Type 2: periodic full snapshots
+
+When storage is cheap and the dimension is small to medium, a dated full copy
+per day or week (partitioned by snapshot date) can replace Type 2. History
+queries join on the snapshot date, there's no merge logic to get wrong, and a
+bad day is fixed by re-taking that snapshot ("compute is cheap, storage is
+cheap, engineering time is expensive"). The costs: storage grows with
+entities × periods, changes between snapshots are invisible, and an "as of"
+question resolves to the nearest snapshot, not the exact instant. Prefer
+Type 2 when you need exact change times or the dimension is large and changes
+slowly. Snapshots are also a good *source* for a Type 2 — diff consecutive
+ones ([BACKFILLING.md](./BACKFILLING.md)).

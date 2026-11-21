@@ -50,6 +50,17 @@ Use your engine's hash function (`MD5` is enough for change detection). Don't
 swap the `COALESCE`s for `CONCAT_WS`: it skips NULLs, so `('A', NULL, 'B')`
 and `('A', 'B', NULL)` hash the same.
 
+What goes into the hash:
+
+* **The tracked business attributes only** — never keys, load timestamps,
+  batch IDs, or other metadata, or every reload looks like a change.
+* **In one fixed, documented column order** (alphabetical is a fine
+  convention). The fixed order makes the hash reproducible; it doesn't make
+  it survive schema change. Adding or removing a hashed column changes every
+  row's hash, so treat it as a change to the dimension: rehash history in a
+  heal ([BACKFILLING.md](./BACKFILLING.md)) in the same release, or the next
+  load sees every row as changed.
+
 Compare incoming `row_hash` to the current row's; differ → close the old, open
 the new.
 

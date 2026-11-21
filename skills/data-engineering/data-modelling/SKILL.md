@@ -39,6 +39,26 @@ A fuzzy grain is the #1 dimensional-design failure. Ask the questions in the
 DDL. The most expensive modelling mistakes are committed silently at this
 step.
 
+### 1a. Confirm the layer and the shape — a star is a default, not a rule
+
+The model takes the shape of the question, not of the framework. Confirm which
+layer this is and what its consumer needs before reaching for a star:
+
+* **Reporting / BI layer** → a star: facts and conformed dimensions. This is
+  the default, and where Kimball earns its keep.
+* **Integration layer** (between raw and presentation) → stay close to the
+  sources (normalised, or Data Vault); don't force dimensions here.
+* **Feature store / ML** → flatter and wider: one row per entity per as-of
+  time, with every feature as it was known at that time (no leakage from
+  later corrections).
+* **Prototype or a one-off with a single consumer** → one big table is fine.
+  Write down the hardening plan with it — the prototype becomes the spec for
+  the star.
+
+If every consumer needs a relationship the star can't express cleanly (a
+many-to-many), model it — a bridge ([DIMENSIONS.md](./DIMENSIONS.md)) or a
+different shape — rather than build a star the analysts route around.
+
 ### 1b. If the model already exists, refactor it — don't redesign it
 
 A rewrite throws away the reasons behind every odd filter and join. Refactor
@@ -104,6 +124,8 @@ tool-agnostic pseudo-SQL of all six steps.
 
 Ask only the ones not already answered by profiling or the user:
 
+0. **Layer & consumer** — reporting/BI, feature store, or prototype? Who reads
+   it, and with what tool? (Step 1a.)
 1. **Grain** — what does exactly one row in the target table represent, in
    business terms? (If they can't say it in one sentence, the grain isn't set.)
 2. **Business process / fact type** — is this a measurement event
@@ -127,12 +149,12 @@ Ask only the ones not already answered by profiling or the user:
 
 | File | When to open it |
 |---|---|
-| [DIMENSIONS.md](./DIMENSIONS.md) | Dimension design rules and techniques, conformed dimensions, bus matrix, aggregates. |
+| [DIMENSIONS.md](./DIMENSIONS.md) | Dimension design rules and techniques, the generated date dimension, conformed dimensions, bus matrix, aggregates. |
 | [KEYS.md](./KEYS.md) | Business/surrogate/composite/durable keys, naming, anti-patterns. |
-| [SCD-TYPES.md](./SCD-TYPES.md) | Choosing a history policy per attribute — SCD types 0–7. |
+| [SCD-TYPES.md](./SCD-TYPES.md) | Choosing a history policy per attribute — SCD types 0–7, and periodic full snapshots as an alternative to Type 2. |
 | [SCD1.md](./SCD1.md) | Overwrite-in-place dimension attributes. |
 | [SCD2.md](./SCD2.md) | History-tracking dimensions, effectivity intervals, validation. |
-| [BACKFILLING.md](./BACKFILLING.md) | Building, backfilling, or periodically healing SCD2 history deterministically; preconditions. |
+| [BACKFILLING.md](./BACKFILLING.md) | Building, backfilling, or periodically healing SCD2 history deterministically; preconditions; multi-source and snapshot sources. |
 | [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) | Tool-agnostic pseudo-SQL for the six Healing-Table steps. |
 | [FACT-TABLES.md](./FACT-TABLES.md) | Fact grain, the three types, additivity, factless/degenerate. |
 
