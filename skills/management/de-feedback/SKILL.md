@@ -17,6 +17,15 @@ Feedback is the gap between those two, communicated well. The skill anchors expe
 - Pure technical review of an artifact (a PR, a dbt model, a pipeline) with no person-evaluation intent → just review the artifact.
 - Generic career advice unrelated to a specific person's performance.
 
+## Pick the mode
+
+The same rubrics serve four conversations. Ask which one this is if it isn't obvious:
+
+- **Review** (the default) — the full workflow below: expected level, scoring matrix, narrative, growth plan, running log.
+- **Promotion case** — the same workflow, but the bar is the *next* level, and at the next level's *scope*. Exceed here means already meeting the next level's Meet bar across the breadth that level owns (a senior making a staff case shows cross-team outcomes, not their own project done faster or better). Evidence at the current scope, however strong, is a Meet.
+- **Interview / hiring assessment** — rate only the skills the interview actually probed; everything else is *not assessed* (not "insufficient evidence"). Evidence must be first-person and specific: what *they* did, with the numbers and the outcome ("I added row-level assertions on the CDC stream; duplicates fell from 12% to 0.3%"), not "we did" or a textbook definition. Output a hire / no-hire at a stated level, the evidence for each probed skill, and what the next interviewer should probe. No narrative for the candidate, no growth plan, no running log.
+- **1:1 coaching** — no rating matrix. First decide what the moment needs from you: coaching, teaching, or counsel. Understand before advising — ask what's going on and what they've tried. Use the rubrics only as vocabulary for the behaviour you're aiming at, agree one next step, and add it to the running log (Step 4b) if there is one.
+
 ## The workflow
 
 Run these steps in order. Do not skip step 0 — a feedback artifact with the wrong expected level is worse than useless.
@@ -40,7 +49,7 @@ Staff and Principal are both "above senior" but differ in axis: Staff = breadth 
 Default to all four. Each has its own rubric file in this directory:
 
 - **Technical craft** — `RUBRIC-TECHNICAL.md` (data modelling, SQL/transform, pipeline/orchestration, IaC/cloud, data quality/testing, performance/cost).
-- **Delivery & operations** — `RUBRIC-DELIVERY.md` (reliability/on-call, incident handling, estimation/scoping, ownership, documentation).
+- **Delivery & operations** — `RUBRIC-DELIVERY.md` (reliability/on-call, incident handling, estimation/scoping, ownership, documentation, directing and checking AI agents).
 - **Collaboration & communication** — `RUBRIC-COLLABORATION.md` (written/verbal clarity, stakeholder management, code review, knowledge sharing).
 - **Leadership & influence** — `RUBRIC-LEADERSHIP.md` (mentoring, technical direction, decision-making, driving alignment, raising the bar).
 
@@ -54,6 +63,10 @@ The point is an *honest* evaluation, which requires real evidence, not vibes. Fo
 - Only ask clarifying questions for skills where evidence is **absent or ambiguous**. Don't re-ask what you already know.
 - Prefer specifics: "Tell me about a time they…", "What did they do when the pipeline broke at 2am?", "Show me a PR you thought was strong / weak." For closed questions, use your structured question or multiple-choice tool if you have one; use prose for open ones.
 - A skill with no evidence is rated **"Insufficient evidence"** — never guessed. Flag these so the initiator can go observe.
+- **One example to rate a skill at all; a pattern of several for Exceed.** One great week is a good quarter, not a skill — check the reps.
+- **Counts aren't evidence.** Tickets closed, PRs merged, and incidents resolved measure activity, and reward chopping work up. Ask explicitly for the invisible prevention work: the schema drift caught before it reached the mart, the review that stopped a fan-out, the runbook nobody else wrote, the junior who's now autonomous on a system they couldn't touch six months ago.
+- **Rate outcomes, not ceremony.** Following every process while shipping fragile pipelines is a gap — say so, kindly and specifically. But an outcome achieved once may be luck; look for the track record.
+- **Read the self-evaluation**, if there is one, before you rate. Where it and the evidence disagree, the gap between knowing what to do and doing it is the finding.
 
 Guard against bias: anchor each rating to a behaviour in the rubric, not to overall impression (halo/horns). Recency, likeability, and "reminds me of myself" are not data.
 
@@ -74,7 +87,7 @@ Fill out `FEEDBACK-TEMPLATE.md` (copy it; don't edit the reference in place). It
 - A header (name, role, expected level, period, evidence basis).
 - The **scoring matrix** — one row per skill: expected level · rating · evidence · the specific next-step behaviour.
 - A **narrative** section structured for delivery (see step 5).
-- A short **growth plan** (2–4 focused items, not a laundry list).
+- A short **growth plan** (2–4 focused items, not a laundry list). Each aim gets an **"in return" clause** — not "I want to lead streaming ingestion" but "by June I'll be the person the team hands streaming ingestion to; in return I'll have built late-arrival handling on both event pipelines, documented the watermark strategy, and carried the on-call the first three times it breaks." A wish without an "in return" gives neither of you anything to hold.
 
 Save the finished artifact as a markdown file in the working/output directory and present it. If the user explicitly wants a Word doc to share formally, use the `docx` skill to convert.
 

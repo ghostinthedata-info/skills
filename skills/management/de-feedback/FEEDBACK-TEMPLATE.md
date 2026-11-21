@@ -7,7 +7,7 @@
 | **Engineer** | {name} |
 | **Current role / title** | {title} |
 | **Expected maturity level** | {Junior / Mid / Senior / Staff / Principal} — *why:* {scope, autonomy, blast-radius evidence} |
-| **Review type** | {performance review / 1:1 coaching / interview assessment / promo case} |
+| **Review type** | {performance review / promotion case / interview assessment} (1:1 coaching uses no matrix — see the skill) |
 | **Period / context** | {dates or project} |
 | **Evidence basis** | {what this is grounded in — PRs, incidents, projects, peer input} |
 | **Reviewer** | {name} |
@@ -36,6 +36,7 @@ Rating is relative to the **expected level above**. Underperform = below their l
 | Estimation & scoping | | | |
 | Ownership & follow-through | | | |
 | Documentation | | | |
+| Directing & checking AI agents | | | |
 
 ### Collaboration & communication
 | Skill | Rating | Evidence | Next-step behaviour |
@@ -74,9 +75,9 @@ Rating is relative to the **expected level above**. Underperform = below their l
 
 ## Growth plan
 
-*(2–4 focused items. Each: the skill, the target behaviour, a concrete first step, and how you'll both know it's working. Resist the laundry list.)*
+*(2–4 focused items. Each: the skill, the target behaviour, the "in return" — what they'll have delivered when they get there — a concrete first step, and how you'll both know it's working. Resist the laundry list.)*
 
-1. **{Skill}** → target: {behaviour at the bar} · first step: {…} · signal of progress: {…}
+1. **{Skill}** → target: {behaviour at the bar} · in return: {the concrete things they'll have built, documented, or carried} · first step: {…} · signal of progress: {…}
 2.
 3.
 

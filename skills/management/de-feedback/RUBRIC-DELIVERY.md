@@ -48,3 +48,12 @@ Rate against the **Meet** bar for the engineer's *expected* level. Underperform 
 | Senior | System knowledge is tribal/bottlenecked on them. | Ensures systems are documented so the team isn't bottlenecked on them. | Creates durable references/decision records (ADRs). |
 | Staff | — | Drives documentation/knowledge standards across teams. | Org knowledge-management practice. |
 | Principal | — | Codifies strategic decisions and direction durably. | — |
+
+## 6. Directing and checking AI agents
+| Level | Underperform | **Meet** | Exceed |
+|---|---|---|---|
+| Junior | Pastes the ask into an agent and submits what comes back; can't say what the change does. | Can explain every change they submit without the agent — what it does, what it assumes; runs the tests and a basic reconciliation before asking for review. | Spots generated output that's plausible but wrong before review does. |
+| Mid | Ships or approves generated work on a first read; tests the same agent wrote are the only evidence. | Gives the agent the grain, the keys, and the source's known traps; backs generated work with reconciliation evidence (counts, sums, distinct keys tie out); can explain any change they approved. | Fixes the pattern behind an agent's error — the prompt, the template, the checklist — not just the output. |
+| Senior | Lets the review burden grow unchecked; no view on where agents mustn't run alone. | Sets the automation level per kind of work in their area (agent drafts, human owns every line where money, compliance, or history is involved); reviews for understanding, not just green tests; feeds corrections back into the team's skills and templates. | Builds the context — skills, pattern bank, pre-mortem — that makes agents right first time. |
+| Staff | — | Sets standards across teams: automation levels, the evidence each kind of change needs, and keeping manual skill alive. | Org-wide approach to supervised automation. |
+| Principal | — | Owns the strategic stance on AI-assisted delivery and its risks. | — |
