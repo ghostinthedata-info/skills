@@ -1,6 +1,6 @@
 # Value Discovery — Pains, Gains, Profiles, Use Cases
 
-Used in **Step 1** of the skill. The goal: understand *why* this data matters to
+Used for **question 1** of the skill. The goal: understand *why* this data matters to
 a real person, so every later decision (grain, SLAs, historization) is argued
 from their actual stakes — not abstractly. Adapted from the Value Proposition
 Canvas: profile the consumer, then map their pains and gains to what the
@@ -41,8 +41,8 @@ Ask one question at a time, each with a recommended default to react to.
 
 * The concrete questions they'll ask of the data, or actions they'll take.
 * These reveal the **filter columns**, the **grain**, and the **query latency**
-  that matter — feed them directly into Steps 1 (consumption), 2 (grain), and 5
-  (SLAs).
+  that matter — feed them directly into questions 1 (consumption), 2 (grain),
+  and 5 (SLAs).
 
 ## Importance / stakes (the rigour budget)
 
@@ -55,7 +55,7 @@ Ask one question at a time, each with a recommended default to react to.
 
 ## Capturing it
 
-Summarise as a short **value statement** at the top of the design doc:
+Summarise as a short **value statement** at the top of the spec:
 
 > For *[profile]* who *[job-to-be-done]*, this *[pipeline/report]* relieves
 > *[pain]* and delivers *[gain]*. It is *[importance level]* because *[stakes]*.

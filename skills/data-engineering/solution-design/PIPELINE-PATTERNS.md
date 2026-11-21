@@ -27,7 +27,7 @@ stays raw — no typing or logic) → completeness check against the source's
 manifest or receipt → managed ingest into the raw/warehouse layer, with
 archiving and failed-row routing. Types and the data contract are applied
 later, in staging. Capture per-source delta cadence, delete semantics, and
-replay/backfill behaviour here (see skill Step 3).
+replay/backfill behaviour here (see skill Step 1).
 
 ## Stage 2 — Transformation (raw → modelled)
 

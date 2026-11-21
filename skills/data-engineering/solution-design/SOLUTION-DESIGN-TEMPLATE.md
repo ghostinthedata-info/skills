@@ -8,6 +8,7 @@ is hand-authored per project; edit the labels and keep the zone colours.
 # Solution Design — [Pipeline / Report Name]
 
 **Author:** [name] · **Date:** [YYYY-MM-DD] · **Status:** Draft / Reviewed / Approved
+**Requirements spec:** [link or path — the what and why this design builds on]
 
 ---
 

@@ -1,132 +1,122 @@
 ---
 name: solution-design
-description: Elicit and pin down requirements for a data pipeline, model, or report before any code, then produce a solution-design doc. Nails value (pains/gains/profiles), grain, sources & authority, definitions, freshness/volume SLAs, historization, access patterns, and acceptance criteria. Produces a one-page-style design with an SVG overview, day-sized (1-5d) work packages, a decisions register, dependencies and risks. Use when the user starts a new pipeline/model/report, or when scope is fuzzy and you need to prevent rework and scope creep.
-disable-model-invocation: true
+description: Turn agreed requirements for a data pipeline, model, or report into a buildable design — how each source is ingested and what can go wrong with it, the pattern recipe (ingestion → transformation → delivery), the design rules every load follows (idempotent, rebuildable, raw stays raw, audited before publish), day-sized stories with handovers and seams, an estimate, a decisions register, and risks — written up as a solution-design doc with an SVG overview. Use once you know what to build and need to decide how and when. It starts from a requirements spec (gather-requirements, a ticket, or a brief) and asks only for what's missing.
 ---
 
 # Solution Design
 
-"No-one knows exactly what they want." Your job is to make them precise.
-Interview the user **one question at a time**, waiting for each answer. For
-every question, give your recommended default so they can react, not invent.
-Work through the steps in order. Don't skip ahead — each step feeds the next.
+This skill decides **how** and **when**: the patterns, the rules every load
+follows, the work packages, the seams between them, and the risks. It starts
+from the **what** and **why** — a requirements spec from `gather-requirements`
+(if installed), a ticket, or a brief — rather than re-running that interview.
 
-When you have enough to act on, produce the design using
-`SOLUTION-DESIGN-TEMPLATE.md`. The four reference files below carry
-the reusable knowledge so this file stays a process, not an encyclopaedia:
+Work through the steps in order; each feeds the next. Ask one question at a
+time, each with a recommended default to react to. When you have enough to
+act on, produce the design using `SOLUTION-DESIGN-TEMPLATE.md`. The reference
+files carry the reusable knowledge so this file stays a process, not an
+encyclopaedia:
 
 * `PIPELINE-PATTERNS.md` — the patterns we assemble pipelines from
 * `ENGINEERING-STEPS.md` — the DE tasks/steps per pipeline stage
-* `VALUE-DISCOVERY.md` — pains, gains, customer profiles, use cases
 * `COMMON-RISKS.md` — a risk library to reference, not reinvent
 
 ---
 
-## Step 1 — Value & consumers
+## Step 0 — Start from the spec
 
-Anchor everything in why this exists and who it serves. Pull the prompts from
-`VALUE-DISCOVERY.md` and leave the session able to state:
+Read the spec if there is one. Check it gives you the five facts every design
+hangs off, and ask only for the ones that are missing — if most are missing,
+suggest running `gather-requirements` first:
 
-* **Customer profile** — who consumes this, in role terms, and their job-to-be-done.
-* **Pains** — what hurts today (manual reconciliation, stale numbers, no audit trail).
-* **Gains** — what success looks like for them, beyond "I get a table".
-* **Use cases** — the actual questions they'll ask or actions they'll take.
-* **Importance / stakes** — regulatory must-have vs revenue driver vs nice-to-have.
-  This sets the *rigour budget* for every later decision.
-* **Consumption** — SQL, dashboard, or extract? Common filter columns? Acceptable
-  query latency?
+1. **Value statement** — who it's for, the job, the pain, the gain, and the
+   stakes (the stakes set how much rigour the design earns).
+2. **Grain** — one row represents what, in one sentence.
+3. **Sources** — each with its named owner and the agreed source of truth.
+4. **SLAs** — freshness, volume, reliability.
+5. **History** — current state, point-in-time (SCD2), or bi-temporal.
 
-## Step 2 — Grain (the pivotal decision)
+If designing exposes a gap or a wrong answer in the spec, fix the spec and log
+the change in the decisions register; don't quietly design around it.
 
-Declare what **one row represents** in a single sentence. Everything hangs off
-this; the most common modeling failure is a fuzzy grain. Don't move on until
-it's nailed.
+## Step 1 — Source mechanics (per source)
 
-## Step 3 — Sources & authority
+Use `ENGINEERING-STEPS.md` (ingestion stage) for the full checklist. Leave
+knowing, per source:
 
-Use `ENGINEERING-STEPS.md` (ingestion stage) for the full checklist.
-Leave knowing, per source:
-
-* **Owner** — a named person, not a team or channel, accountable for the
-  source's quality, availability, and definitions — and how they announce
-  changes.
-* **Authority** — is this the *agreed source of truth*? If two systems disagree,
-  who wins? **Internal or vendor?** (Vendor changes escalation paths, achievable
-  SLAs, and schema-change trust.)
-* **Delivery & delta mechanics** — full snapshot or delta/incremental? If delta:
-  cadence (e.g. daily) and the watermark column driving it.
+* **Delivery & delta mechanics** — full snapshot or delta/incremental? If
+  delta: cadence (e.g. daily) and the watermark column driving it.
 * **Deletes** — soft or hard? In a delta feed, do deletes appear at all, or do
   rows just silently stop arriving? (The classic delta trap.)
-* **Real-time consistency** — if polled via API: latency between calls? Risk of a
-  record changing *between* two calls — torn reads, missed mid-flight updates?
-* **Gap & recovery** — if you miss a day, is it a permanent hole or does the next
-  delta backfill it? Can you replay?
-* **Initial load** — day-zero from current state only, or full history backfill?
-  (Determines whether rebuildable / SCD2 designs are even possible.)
+* **Real-time consistency** — if polled via API: latency between calls? Risk of
+  a record changing *between* two calls — torn reads, missed mid-flight
+  updates?
+* **Gap & recovery** — if you miss a day, is it a permanent hole or does the
+  next delta backfill it? Can you replay?
+* **Initial load** — day-zero from current state only, or full history
+  backfill? (Decides whether a rebuildable or SCD2 design is even possible.)
 
-## Step 4 — Definitions / ubiquitous language
+## Step 2 — Choose the pattern recipe
 
-Define every metric and entity precisely. "Active customer" by what rule?
-"Revenue" — gross, net, returns within 30 days netted out? Capture these so two
-people never compute the same metric two ways.
-
-## Step 5 — SLAs (per pipeline, not repo-wide)
-
-* **Freshness** — by when must it land; how fresh do consumers *truly* need it
-  (real-time vs "today not yesterday" vs daily)? Push back on "real-time" that's
-  really faster batch.
-* **Volume** — rows now, plus daily/monthly growth.
-* **Reliability** — what happens, and who's told, when it's late or wrong?
-
-## Step 6 — Historization
-
-Ask three questions — they lead to different patterns:
-
-1. **Current state only?** → overwrite (SCD1).
-2. **The value as it was on a past date?** → SCD2 (new row per change,
-   validity interval, current flag). Requires full source history (see Step 3
-   initial load).
-3. **What was known — or how a record was categorised — at processing time,
-   even after later corrections or rule changes?** → bi-temporal: keep both
-   event/valid time and processing time. Ask this one explicitly; it changes
-   the transformation pattern significantly.
-
-If none applies, don't pay for history.
-
-## Step 7 — Choose the pattern recipe
-
-Assemble the recipe from `PIPELINE-PATTERNS.md`: one ingestion
-pattern + the transformation pattern + one or more delivery patterns. This
-becomes the SVG overview in the design doc.
+Assemble the recipe from `PIPELINE-PATTERNS.md`: one ingestion pattern + the
+transformation pattern + one or more delivery patterns. This becomes the SVG
+overview in the design doc. Pick the thinnest recipe that meets the SLAs and
+the history need.
 
 Tag each part of the recipe with an effort signal: **known** (built before,
 with actual timings), **known with caveats** (name the caveat — e.g. "the
 source sends no delivery receipt"), or **novel**.
 
-## Step 8 — Produce the solution design
+## Step 3 — Apply the design rules
+
+Every pipeline gets these, whatever the recipe (details in the cross-cutting
+section of `ENGINEERING-STEPS.md`):
+
+* **Idempotent** — a load gives the same result whether it runs once or ten
+  times; replace partitions or merge on the grain key, never blind-append.
+* **Rebuildable** — any table rebuilds from raw in one command, and the
+  incremental result is checked against a full rebuild.
+* **Raw stays raw** — no typing, dedupe, or business logic on landing; types
+  and the data contract apply in staging.
+* **Audited before publish** — write-audit-publish for correctness-critical
+  data; nothing unaudited reaches a consumer.
+* **Data ships before code** — transformation starts once real batches land
+  where production builds can see them, and business validation runs on real
+  history.
+* **Classified with the model** — classify columns and design access as you
+  design the tables (`data-security-classification`, if installed), not after
+  go-live.
+
+## Step 4 — Stories, seams, and the estimate
+
+Break the recipe into themed stories of about one effort-day each, at most
+five per slice, each with subtasks and an explicit handover (e.g. "Story 1 ·
+Environment & Access Setup"). Draw tasks from `ENGINEERING-STEPS.md`.
+
+* Size known parts from actual past timings; give each caveat an explicit
+  buffer or an early spike; give a novel component one time-boxed discovery
+  story with an exit question, and re-estimate after the proof of concept —
+  don't break novel work into days.
+* Walk the seams: what each stage hands the next, what the receiving side
+  needs before it can start, and who is waiting on whom.
+* The estimate is effort plus elapsed time at the seams, estimated
+  separately — overruns happen at the seams.
+
+## Step 5 — Produce the solution design
 
 Fill `SOLUTION-DESIGN-TEMPLATE.md`:
 
-1. **Summary** — the reason / value (from Step 1).
+1. **Summary** — the value statement and grain, carried from the spec.
 2. **Overview (hand-authored inline SVG)** — source → ingestion → transform →
-   delivery, focused on high-level tools/patterns, using the zone colours in the
-   template. Model the phases on the pattern-bank flow.
-3. **Tasks & steps** — themed stories of about one effort-day each, at most
-   five per slice, with subtasks and an explicit handover (e.g. "Story 1 ·
-   Environment & Access Setup"). Draw tasks from `ENGINEERING-STEPS.md`.
-   Size known parts from actual past timings; give each caveat an explicit
-   buffer or an early spike; give a novel component one time-boxed discovery
-   story with an exit question, and re-estimate after the proof of concept —
-   don't break novel work into days. Then walk the seams: what each stage
-   hands the next, and who is waiting on whom. The estimate is effort plus
-   elapsed time at the seams, estimated separately — overruns happen at the
-   seams.
+   delivery, focused on high-level tools/patterns, using the zone colours in
+   the template. Model the phases on the pattern-bank flow.
+3. **Tasks & steps** — the stories, the seams table, and the estimate from
+   Step 4.
 4. **Decisions register** — every material decision, why, alternatives, date,
    owner (official format in the template).
-5. **Dependencies & risks** — reference `COMMON-RISKS.md`; list only
-   the relevant ones plus any project-specific additions.
-6. **Acceptance criteria** — explicit and testable, including the
-   idempotency and rebuild checks.
+5. **Dependencies & risks** — reference `COMMON-RISKS.md`; list only the
+   relevant ones plus any project-specific additions.
+6. **Acceptance criteria** — the spec's criteria, plus the engineering checks:
+   idempotent, rebuildable, validated on real history.
 
 Deliver in thin vertical slices. Don't accept ad-hoc scope changes mid-slice —
 route them through the decisions register instead.

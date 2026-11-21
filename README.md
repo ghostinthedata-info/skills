@@ -85,8 +85,8 @@ fixes so your agent stops re-learning them every session.
 
 ### Discovery
 - **[profile-data](skills/data-engineering/profile-data/SKILL.md)** — Profile a new dataset before you build on it: row counts, cardinality, null/blank analysis, key-uniqueness, distributions, and an optional saved baseline for drift detection.
-- **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — Elicit and pin down requirements for a pipeline or model: grain, sources, consumers, definitions, freshness/volume SLAs, historization, and acceptance criteria — one question at a time. Records terms in `CONTEXT.md` and hard-to-reverse decisions as ADRs.
-- **[solution-design](skills/data-engineering/solution-design/SKILL.md)** — From fuzzy ask to a one-page solution design: value discovery (pains, gains, consumer profiles), grain, sources and authority, SLAs, a pattern recipe with an SVG overview, 1–5 day work packages, a decisions register, and risks.
+- **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — The *what* and *why*: value and consumers, grain, sources and their owners, metric definitions, freshness/volume SLAs, history needs, and acceptance criteria — one question at a time. Produces a one-page requirements spec, records terms in `CONTEXT.md` and hard-to-reverse decisions as ADRs, and can publish the spec to your issue tracker.
+- **[solution-design](skills/data-engineering/solution-design/SKILL.md)** — The *how* and *when*, starting from the requirements spec: source mechanics, a pattern recipe with an SVG overview, the design rules every load follows, day-sized stories with handovers and seams, an estimate, a decisions register, and risks.
 
 ### Modeling
 - **[data-modelling](skills/data-engineering/data-modelling/SKILL.md)** — Entry point for analytics modelling, Kimball grain-first: profile, pin grain and history, then design facts (transaction / periodic / accumulating, additivity), dimensions and keys (surrogate, durable, conformed, the bus matrix), SCD types 0–7 with SCD1/SCD2 implementations, and deterministic Healing-Table backfills.

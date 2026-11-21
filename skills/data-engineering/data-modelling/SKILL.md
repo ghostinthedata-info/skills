@@ -161,8 +161,8 @@ Ask only the ones not already answered by profiling or the user:
 ## Related skills (compose with these if installed)
 
 * `profile-data` — run first (step 0).
-* `gather-requirements` / `solution-design` — pin grain, consumers, and
-  history needs before you model.
+* `gather-requirements` — pin grain, consumers, and history needs before you
+  model; `solution-design` — fit the model into the pipeline's design.
 * `test-data` — key, referential-integrity, and SCD2 temporal-integrity tests.
 * `data-security-classification` — classify columns as you design them.
 
