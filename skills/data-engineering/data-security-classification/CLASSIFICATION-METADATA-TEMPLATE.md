@@ -17,6 +17,20 @@ Every classified column carries the same four facts:
 Optionally add `steward` (who owns the decision) and `review_by` (a date — see
 the "classify-once, never-review" anti-pattern).
 
+Restricted data also carries its **lifecycle** — usually set on the model, and
+on a column only when that column has a shorter life than its table:
+
+- `retention` — how long it's kept: `90d`, `7y`, …
+- `retention_basis` — the date the clock runs from: `event_date` (operational
+  data) or `load_date` (archives — under an event-date clock, history
+  backfilled last week can be purged at once)
+- `on_expiry` — what happens at the end: `delete` | `anonymise`
+- `deidentification` — `none` | `pseudonymised` | `anonymised`. Pseudonymised
+  data (a mapping back to the person exists) keeps its tier; only truly
+  anonymised data can drop it.
+- `min_cell_size` — on aggregates published as anonymous: the smallest group
+  a cut may show (e.g. `10`); smaller cells are suppressed or rolled up.
+
 ---
 
 ## Option A — dbt (`schema.yml` / `models/**/*.yml`)
@@ -34,6 +48,9 @@ models:
     meta:
       classification: restricted          # table = its most sensitive column
       owner: data-platform
+      retention: 7y
+      retention_basis: event_date
+      on_expiry: anonymise
     columns:
       - name: customer_key
         description: "Surrogate key (PK)."
@@ -48,6 +65,7 @@ models:
           pii: true
           requirement_source: "GDPR Art.5 / privacy policy v3"
           masking: partial-last4          # broad roles see j***@e***.com
+          deidentification: none
           steward: jane.doe
 
       - name: ssn
@@ -67,6 +85,22 @@ Make it enforceable, not just documentation:
   `requirement_source` and a `masking` value other than `none`.
 - Drive masking from the metadata: generate per-role views/grants from the
   `masking` value rather than hand-writing them (single source of truth).
+- A check that every model holding a restricted column has `retention`,
+  `retention_basis`, and `on_expiry` — restricted data with no end date is
+  kept forever by default.
+- A check that every model published as anonymous has `min_cell_size`, and
+  that its output has no group smaller than it.
+
+An aggregate published as anonymous:
+
+```yaml
+  - name: agg_accounts_by_region
+    description: "Account counts by region, age band and product. Published as anonymous."
+    meta:
+      classification: internal
+      deidentification: anonymised
+      min_cell_size: 10                   # cells under 10 accounts are suppressed
+```
 
 ---
 
@@ -87,6 +121,9 @@ models/marts/
 table: dim_customer
 classification: restricted
 owner: data-platform
+retention: 7y
+retention_basis: event_date
+on_expiry: anonymise
 columns:
   customer_key:
     classification: internal
