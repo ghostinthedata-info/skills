@@ -84,7 +84,9 @@ straight at the offender.
 * **Null count per column** — a column that's right on non-nulls but wrong on
   null handling shows up here, not in a `SUM`.
 
-Only the columns whose fingerprints disagree go to level 3.
+Only the columns whose fingerprints disagree go to level 3. A full-row
+`EXCEPT` / `MINUS` across every column is a level-3 check in disguise — it
+compares every cell — so it comes after the fingerprints, not before them.
 
 ### 3. Cell-by-cell — the value anti-join
 

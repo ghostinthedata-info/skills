@@ -11,7 +11,8 @@ disable-model-invocation: true
 the user **one question at a time**, waiting for each answer, and give your
 recommended default with every question so they can react, not invent. If the
 conversation already answers a question, don't ask it again: write the answer
-down and confirm it.
+down and confirm it. One question per message means one: don't tack an "also,
+tell me…" onto it, however related — save it for the next turn.
 
 Stop at the what and the why. Ingestion patterns, design rules, stories, and
 estimates belong to `solution-design` (if installed), which starts from the
