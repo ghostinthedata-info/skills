@@ -50,6 +50,9 @@ are present before you trust any value.
 * **Key-set diff** — keys in the source missing from the target, and keys in
   the target not in the source. *These two anti-joins are the heart of
   reconciliation.*
+* **Declared totals** — if the producer declares what it sent (a manifest's
+  row count or checksum, a control record's sums), the landed data must match
+  exactly. No tolerance band: a declared total is a fact, not an estimate.
 
 If counts and key sets tie out, the grain is right, and the next levels are
 about *values*, not *rows*.

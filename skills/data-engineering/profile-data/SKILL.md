@@ -72,6 +72,21 @@ can assert validity but only flags suspected accuracy issues for an SME.)
 * Null count AND null% per column. Separately count empty strings,
   whitespace-only, and sentinel values ('N/A', 'NULL', '-', 'UNKNOWN', zero
   dates like '1900-01-01').
+* **Every spelling of missing.** Count each null-like value on its own —
+  `''`, `NULL`, `null`, `None`, `\N`, `N/A`, `NA`, `#N/A`, `-`, `NaN`,
+  `(null)`, `Unknown`, `TBD`, placeholder dates — and report them *all* as
+  missing. A field padded with "N/A" to hit a completeness target is complete
+  in form and empty in fact. Then agree one convention per column with the
+  source's owner — a true NULL, or a small fixed set ("Not Applicable",
+  "Not Provided", "Unknown") where the difference matters — and record it in
+  the contract.
+* **Per segment, not just overall.** Measure completeness for each segment
+  that needs the column differently. A catalogue 74% complete overall can be
+  40% complete on the engine parts that need batch numbers for recalls, and
+  98% on the parts that don't — the average hides the problem.
+* **Against its use.** Map each column to the consumers and uses that depend on
+  it (from the spec, if there is one), because "is 92% good enough?" depends
+  on the use: fine for a mailing campaign, a disaster for account recovery.
 * Decide per column: is null expected, or a defect?
 
 ### 5. Distribution & outliers
@@ -84,6 +99,13 @@ can assert validity but only flags suspected accuracy issues for an SME.)
 * Confirm dates, time-zone semantics (a timestamp without a zone, with one, or
   in session-local time — a frequent source-load gotcha), and numeric
   precision are what you assumed.
+* **Content vs declared type.** For string columns, check what the values
+  actually are: the share that's digits only (a code that loses its leading
+  zeros the moment anything casts it to a number), values that start with a
+  zero, leading or trailing whitespace, invisible characters (non-breaking or
+  zero-width spaces, a byte-order mark stuck to the first column's name), and
+  dates in ambiguous formats — is `03/04/2024` the 3rd of April or the 4th of
+  March? Only ISO 8601 (`YYYY-MM-DD`) is safe.
 * Regex-scan for PII patterns (emails, phone, national IDs, postcodes) and
   classify by sensitivity so the model masks/encrypts/excludes appropriately
   (`data-security-classification` decides the tier, if installed).

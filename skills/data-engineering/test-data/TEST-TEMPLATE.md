@@ -76,6 +76,13 @@ FROM {{model}}
 WHERE {{load_date}} = CURRENT_DATE
 HAVING COUNT(*) < {{expected_min}} OR COUNT(*) > {{expected_max}};
 
+-- Delivery reconciliation (error): landed rows equal what the producer declared,
+-- exactly — no band. {{declared_rows}} comes from the manifest or control record.
+SELECT COUNT(*) AS landed_rows
+FROM {{landing_table}}
+WHERE {{delivery_id_col}} = '{{delivery_id}}'
+HAVING COUNT(*) <> {{declared_rows}};
+
 -- Business rule (varies): e.g. returns after 30 days excluded from revenue
 SELECT *
 FROM {{model}}
@@ -104,6 +111,35 @@ not-null on keys); **warn** = soft anomaly worth a human glance. New checks
 start at error and are demoted to warn only after burn-in; every warn row
 needs an owner and the threshold at which it escalates to error. Don't let
 everything stay "error" forever — severity inflation destroys the signal.
+
+---
+
+## Results history (append-only)
+
+Write one row per check per run; never update or delete rows.
+
+```sql
+CREATE TABLE dq_results (
+    run_ts        TIMESTAMP    NOT NULL,
+    check_name    VARCHAR      NOT NULL,
+    table_name    VARCHAR      NOT NULL,
+    severity      VARCHAR      NOT NULL,   -- error | warn
+    rows_checked  BIGINT,
+    failures      BIGINT       NOT NULL,
+    outcome       VARCHAR      NOT NULL,   -- pass | fail | error-running
+    owner         VARCHAR      NOT NULL
+);
+
+-- pass-rate trend per check, last 30 days: a falling line is a check (or a
+-- source) degrading before it pages anyone
+SELECT check_name,
+       CAST(run_ts AS DATE)                                             AS run_date,
+       AVG(CASE WHEN outcome = 'pass' THEN 1.0 ELSE 0.0 END)           AS pass_rate
+FROM dq_results
+WHERE run_ts >= CURRENT_DATE - INTERVAL '30' DAY
+GROUP BY check_name, CAST(run_ts AS DATE)
+ORDER BY check_name, run_date;
+```
 
 ---
 

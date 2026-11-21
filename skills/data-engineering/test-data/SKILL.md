@@ -35,6 +35,18 @@ from repo-wide config.
   column test; only this catches them.
 * **Business rules** — singular tests for logic that needs
   joins/aggregations ("returns after 30 days are excluded from revenue").
+* **Delivery reconciliation** — when the producer declares what it sent (a
+  manifest's row count, checksum, and file size; a control or trailer
+  record's totals), what landed must match it **exactly**. A declared total is
+  a fact about the delivery, not a forecast, so it gets no tolerance band: a
+  mismatch means a truncated, duplicated, or corrupted delivery — hold it.
+
+**Test for the use, not the average.** Map each tested column to the consumers
+that rely on it and set thresholds per use. Where segments need a column
+differently, test completeness per segment — a 74% overall figure can hide a
+40% segment that the recall process depends on. And count every spelling of
+"missing" (`N/A`, `Unknown`, `-`, placeholder dates) as missing, with one
+agreed convention per column (`profile-data` finds them, if installed).
 
 ## Name what each test defends — the DQ dimensions
 
@@ -75,6 +87,12 @@ is not a status. Change a threshold after an investigation, never just
 because the data grew. Severity inflation (everything "error", forever)
 destroys the signal too, same as it does for incidents.
 
+**Adding a check to a table that's already live?** Size the backlog first: run
+the check against current production, count and export the violations, and
+sort them by urgency (past, today, future; or by consumer). Clean up or flag
+the existing rows, then switch the check on as blocking. A blocking check that
+fails on day one on old data just gets disabled.
+
 ## Where tests live — Write-Audit-Publish (Ghost in the Data)
 
 Don't test in production after the fact. Use **WAP**:
@@ -100,6 +118,22 @@ Don't test in production after the fact. Use **WAP**:
 This is blue-green deployment for data: consumers never see unaudited data,
 and you can roll back quickly. Make every load idempotent so re-runs are safe
 (see `solution-design` if installed).
+
+## After the gate — keep the signal alive
+
+A gate whose failures nobody acts on is a broken window with a cone in front
+of it. For every check:
+
+* **A named owner** — a person, not a team or a channel.
+* **An alert route that matches the table's tier** — paging for tier 1, the
+  team channel for tier 2, a digest for tier 3.
+* **An append-only results history** — check, table, run time, rows checked,
+  failures, outcome — so you can see each check's pass-rate trend and spot one
+  that's quietly degrading.
+* **Only actionable alerts.** If the response to an alert is "acknowledge and
+  move on", change its threshold or delete it. Group alerts that share an
+  upstream cause (by lineage) into one, rather than five pings for one schema
+  change.
 
 ## Test the checks themselves
 

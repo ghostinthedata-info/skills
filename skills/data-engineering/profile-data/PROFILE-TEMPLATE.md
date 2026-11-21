@@ -85,6 +85,23 @@ FROM {{table}};
 -- for date columns, also count placeholder dates:
 --   SUM(CASE WHEN {{date_col}} = DATE '1900-01-01' THEN 1 ELSE 0 END) AS zero_dates
 -- decide per column: is null expected, or a defect?
+
+-- every spelling of missing, one row each, so the convention can be agreed
+SELECT TRIM({{col}}) AS spelling, COUNT(*) AS n
+FROM {{table}}
+WHERE {{col}} IS NULL
+   OR UPPER(TRIM({{col}})) IN ('', 'NULL', 'NONE', '\N', 'N/A', 'NA', '#N/A',
+                               '-', 'NAN', '(NULL)', 'UNKNOWN', 'TBD')
+GROUP BY TRIM({{col}})
+ORDER BY n DESC;
+
+-- completeness per segment: the overall figure can hide the segment that matters
+SELECT {{segment_col}},
+       COUNT(*)                                                    AS total,
+       ROUND(COUNT({{col}}) * 100.0 / NULLIF(COUNT(*), 0), 2)      AS complete_pct
+FROM {{table}}
+GROUP BY {{segment_col}}
+ORDER BY complete_pct;
 ```
 
 ## 5. Distribution & outliers
@@ -127,8 +144,25 @@ WHERE table_schema = '{{schema}}' AND table_name = '{{table}}'
   AND data_type LIKE 'TIMESTAMP%';
 ```
 
+```sql
+-- content vs declared type, per string column
+SELECT
+  COUNT({{col}})                                                         AS non_null,
+  SUM(CASE WHEN {{col}} ~ '^[0-9]+$' THEN 1 ELSE 0 END)                  AS digits_only,
+  SUM(CASE WHEN {{col}} ~ '^0[0-9]+$' THEN 1 ELSE 0 END)                 AS leading_zero,
+  SUM(CASE WHEN {{col}} <> TRIM({{col}}) THEN 1 ELSE 0 END)              AS padded,
+  SUM(CASE WHEN {{col}} ~ '[^ -~]' THEN 1 ELSE 0 END)                    AS non_printable_or_non_ascii,
+  SUM(CASE WHEN {{col}} ~ '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}$' THEN 1 ELSE 0 END) AS slash_dates
+FROM {{table}};
+-- digits_only near non_null → a numeric code: keep it a string, or zeros vanish
+-- non_printable_or_non_ascii → look for non-breaking / zero-width spaces, a BOM
+-- slash_dates → ambiguous day/month order; agree ISO 8601 with the source
+```
+
 > `~` is POSIX regex match in some engines; use your dialect's operator or
-> function (`RLIKE`, `REGEXP_LIKE`, `REGEXP_CONTAINS`, …).
+> function (`RLIKE`, `REGEXP_LIKE`, `REGEXP_CONTAINS`, …). `[^ -~]` matches
+> anything outside printable ASCII — legitimate accented text shows up too, so
+> inspect the matches before calling them defects.
 
 ---
 
