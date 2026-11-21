@@ -139,6 +139,8 @@ Other skills this one leans on, if installed:
 * **`data-modelling`** — if reconciliation surfaces a grain or SCD problem
   rather than a data problem, the fix is a modelling decision, not another
   query.
+* **`review-data-change`** — asks for this evidence on every logic change
+  before it merges.
 
 ## Deliver
 

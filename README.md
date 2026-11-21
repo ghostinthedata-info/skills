@@ -8,7 +8,8 @@ engineering, from the [Ghost in the Data](https://ghostinthedata.info) blog.
 Focused on the durable, vendor-neutral parts of the data craft: profiling,
 requirements and solution design, tickets and triage, dimensional modelling
 (keys, slowly changing dimensions, facts, backfills), test-first
-transformations, testing and reconciliation, diagnosis, performance, incident
+transformations, testing, reconciliation and change review, diagnosis,
+performance, incident
 management, and security classification.
 
 These skills are deliberately **tool-agnostic**. There is no Snowflake-only
@@ -100,6 +101,7 @@ fixes so your agent stops re-learning them every session.
 - **[tdd](skills/data-engineering/tdd/SKILL.md)** — Test-first transformations: fixture rows in, the exact rows the definition demands out, watch it fail, write the least SQL, then add the edge cases (NULLs, duplicates, late rows, boundaries, unmatched keys, re-runs). Shapes for dbt and SQLMesh unit tests, plain SQL, and pytest.
 - **[test-data](skills/data-engineering/test-data/SKILL.md)** — A test plan you can defend: what to test (uniqueness, referential integrity, nulls, accepted values, freshness, volume/variance), severity levels, and where tests live (Write-Audit-Publish).
 - **[reconcile-data](skills/data-engineering/reconcile-data/SKILL.md)** — Prove a changed model or a migrated table matches its source of truth: counts and key-set diffs, then per-column checksums, then a cell-by-cell diff, stopping at the first break — and graduate the keepers into permanent tests.
+- **[review-data-change](skills/data-engineering/review-data-change/SKILL.md)** — Decide whether a data change is ready to merge and how much human ownership it needs: a review level by kind of work, reconciliation evidence before reading the code, never the author's own tests as the only proof (human or agent), the data reviewer's checks, an explanation without the author, and the pattern behind any defect fixed.
 - **[performance-tuning](skills/data-engineering/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. A tool-agnostic method plus engine references for Oracle/SQL Server, cloud warehouses, and Spark (shuffles, skew, broadcast joins, caching).
 
 ### Operations

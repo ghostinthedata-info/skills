@@ -5,8 +5,8 @@ organized into bucket folders under `skills/`:
 
 * `data-engineering/` — the published data-engineering pack (profiling,
   requirements and solution design, tickets and triage, modelling — keys,
-  SCDs, facts, backfills — test-first transformations, testing and
-  reconciliation, diagnosis, performance, incidents, security
+  SCDs, facts, backfills — test-first transformations, testing,
+  reconciliation and change review, diagnosis, performance, incidents, security
   classification)
 * `management/`       — leading and developing data engineers (`de-feedback`)
 * `setup/`            — one-time per-repo configuration (`setup-ghost-skills`)
