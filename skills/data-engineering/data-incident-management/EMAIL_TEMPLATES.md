@@ -15,7 +15,7 @@ Rules that apply to every email:
 ## 6.1 — Initial Notification
 *Use for D1, D2, D3. Adapt tone to severity.*
 
-**Subject:** [DATA NOTICE] <Affected Report/System> — Data Delay | <Date>
+**Subject:** [DATA NOTICE] <Affected Report/System> — <Data Delay | Incorrect Figures | Missing Records> | <Date>
 
 Hi [First Name / Team],
 
@@ -44,7 +44,7 @@ Regards,
 ## 6.2 — Status Update
 *Use during prolonged D1 (and D2 if warranted) before resolution.*
 
-**Subject:** [UPDATE] <Affected Report/System> — Data Delay | <Date> — <Time>
+**Subject:** [UPDATE] <Affected Report/System> — <issue type> | <Date> — <Time>
 
 Hi [First Name / Team],
 
@@ -68,7 +68,7 @@ Regards,
 ## 6.3 — Resolution Notification
 *Use for ALL severities on resolution. Always closes the loop.*
 
-**Subject:** [RESOLVED] <Affected Report/System> — Data Delay | <Date>
+**Subject:** [RESOLVED] <Affected Report/System> — <issue type> | <Date>
 
 Hi [First Name / Team],
 
@@ -95,7 +95,8 @@ Regards,
 ---
 
 ## 6.4 — Executive Post-Incident Summary
-*Use for D1/D2, sent to leadership 1–2 business days after resolution.*
+*Use for D1 (and D2 if leadership asks), sent to leadership 1–2 business days
+after resolution.*
 
 **Subject:** [POST-INCIDENT SUMMARY] <Affected Report/System> — <Date of Incident>
 
@@ -117,6 +118,36 @@ awareness.
 - [Action 3 — e.g. ticket raised for pipeline resilience improvement: LINK]
 
 Please don't hesitate to reach out if you'd like to discuss further.
+
+Regards,
+[Your Name]
+
+---
+
+## 6.5 — Data Correction Notice
+*Use when figures were **wrong** (not just late) and people may have used them.
+Send with or straight after 6.3.*
+
+**Subject:** [DATA CORRECTION] <Affected Report/System> — <Period affected> | <Date>
+
+Hi [First Name / Team],
+
+Some figures in [affected report, dashboard, or extract] were incorrect, and
+they've now been corrected.
+
+**What was wrong:** [Which figures, for which period — e.g. "Revenue for
+1–14 March was overstated by about 4%."]
+
+**Who may have used them:** [Teams, reports, or decisions downstream, from
+lineage.]
+
+**What to redo:** [Exports, report packs, or decisions to re-check — and
+whether copies already sent need re-issuing.]
+
+**Trust from:** [The date/time from which the figures are correct again.]
+
+Sorry for the disruption. If you made a decision on these figures and want a
+hand re-checking it, reply and we'll help.
 
 Regards,
 [Your Name]

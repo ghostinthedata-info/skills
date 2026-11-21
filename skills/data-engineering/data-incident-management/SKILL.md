@@ -40,7 +40,7 @@ the spine; the supporting files do the heavy lifting:
 |---|---|
 | Decide how serious this is | `CLASSIFICATION.md` |
 | Work the incident step by step | the **Workflow** section below |
-| Send a notification / update / resolution email | `EMAIL_TEMPLATES.md` |
+| Send a notification / update / resolution / correction email | `EMAIL_TEMPLATES.md` |
 | Run the retro and capture root cause + fixes | `POST_INCIDENT_REVIEW.md` |
 | Stop it happening again | `PREVENTION.md` |
 
@@ -63,19 +63,31 @@ the spine; the supporting files do the heavy lifting:
    comms.
 8. **Only produce what was asked.** Don't generate a ticket, PIR, or exec
    summary unless it's requested or the severity requires it.
+9. **No silent fixes (Ghost in the Data, "Don't Go Dark").** Name the issue
+   in writing before you start fixing it, at every severity. "I'll tell them
+   when it's fixed" is the failure mode — the silence becomes the story.
 
 ## Workflow
 
 Work the incident in this order. For D3/D4 several steps collapse onto one person;
 for D1/D2 they run in parallel with separate owners.
 
-### 1. Detect & confirm
+### 1. Detect, write it down, confirm
+- **Write it down first.** Before containing or fixing, open the incident
+  record (ticket or incident-channel post) with the symptom, detected-at,
+  "investigating", and when the next update comes — e.g. "Found an issue with
+  <model> — investigating now, will update by <time>." Record a suspected
+  issue as suspected; downgrade or close it if it turns out to be a blip.
 - Confirm the issue is real (not a transient blip or a user-side cache).
 - Capture **detected-at timestamp**, the symptom, and who/what surfaced it
   (monitor, alert, stakeholder report).
 - Identify the affected report/dashboard/feed and the source system
   (e.g. an HR, CRM or finance system, object storage, a replication/CDC job,
   the warehouse, or the transform layer).
+- Walk lineage downstream from the failing asset to every consumer (models,
+  dashboards, extracts, syncs). That list is both the blast radius and the
+  notify list — add it to the record, so people hear from you before they
+  find out themselves.
 
 ### 2. Classify (severity + impact + risk)
 - Open `CLASSIFICATION.md` and assign **D1–D4**.
@@ -115,17 +127,22 @@ for D1/D2 they run in parallel with separate owners.
 - Use **6.3 Resolution Notification**. Close the loop explicitly — never leave a
   resolution estimate open-ended.
 - State clearly whether data is fully backfilled or a gap remains.
+- If figures were **wrong**, not just late, also send **6.5 Data Correction
+  Notice**: fixing the number doesn't fix what people did with it, so say
+  what was wrong, for which period, and what consumers should redo.
 
-### 8. Log
-- Log it where `docs/agents/incident.md` says (default: the repo's issue
-  tracker), all severities, label `data-incident`. Include: affected
+### 8. Close the record
+- Complete the record opened in step 1, kept where `docs/agents/incident.md`
+  says (default: the repo's issue tracker), all severities, label
+  `data-incident`. Include: affected
   system/pipeline/report, detected-at, resolved-at, severity, brief root cause,
   stakeholders-notified (Y/N), link to PIR if applicable.
 
 ### 9. Review & learn (D1/D2, or any recurring D3)
 - Run the retro using `POST_INCIDENT_REVIEW.md` within 2 business days.
 - Blameless. Produce concrete, owned, dated preventative actions.
-- For D1/D2 send the **6.4 Executive Post-Incident Summary** to leadership.
+- For D1 (and D2 if leadership asks) send the **6.4 Executive Post-Incident
+  Summary** to leadership.
 
 ### 10. Prevent
 - Feed actions back into the system per `PREVENTION.md`: the fixed

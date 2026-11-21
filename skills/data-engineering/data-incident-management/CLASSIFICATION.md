@@ -69,9 +69,9 @@ deserves a review even though the tier alone wouldn't require one.
 | Roles (Lead/Comms/Liaison) | Always separated | Always separated | May be one person | May be one person |
 | Executive awareness | Always | At Lead's discretion | No | No |
 | Resolution notification | Yes | Yes | Yes | Only if impacted/enquired |
-| Post-incident review | Yes, ≤2 business days | If requested by leadership | Only if recurring | No |
+| Post-incident review | Yes, ≤2 business days | Yes, ≤2 business days | Only if recurring | No |
 | Data Ops & Analytics | Init+Upd+Res | Init+Res | Init+Res | No contact |
-| Business data consumers | Init+Upd+Res | Init+Upd+Res | Init+Res | No contact |
+| Business data consumers | Init+Upd+Res | Init+Upd+Res | Init+Res | Only if impacted/asked |
 | Team distribution list (BCC, if configured) | Always | Always | Always | Always |
 
 ## Quick decision flow
