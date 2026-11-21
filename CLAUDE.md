@@ -4,25 +4,37 @@ This is the publisher repo for the **ghost-skills** pack. Skills are
 organized into bucket folders under `skills/`:
 
 * `data-engineering/` — the published data-engineering pack (profiling,
-  requirements, modeling, keys, SCDs, testing, performance, incidents,
-  pipelines, data products, security classification)
+  requirements and solution design, modelling — keys, SCDs, facts,
+  backfills — testing, performance, incidents, security classification)
+* `management/`       — leading and developing data engineers (`de-feedback`)
 * `setup/`            — one-time per-repo configuration (`setup-ghost-skills`)
 * `productivity/`     — general-purpose authoring/comms skills
 * `in-progress/`      — drafts not yet promoted; not published
 
-Every skill in `data-engineering/`, `productivity/`, or `setup/` must have a
-reference in the top-level `README.md` and an entry in
+Every skill in `data-engineering/`, `management/`, `productivity/`, or
+`setup/` must have a reference in the top-level `README.md` and an entry in
 `.claude-plugin/plugin.json`. Skills in `in-progress/` must not appear in
 either until promoted out of that folder.
 
 Each skill entry in the top-level `README.md` must link the skill name to
-its `SKILL.md`.
+its `SKILL.md`. A skill's folder name must equal the `name` in its
+`SKILL.md` frontmatter (the Agent Skills spec requires it).
 
 Skills are purely methodological — no vendor-specific SQL or product
 features in the core buckets. Cross-skill references must be **soft
 references** (see `CONTEXT.md` for the definition); every skill must remain
 self-sufficient for its core decision. The setup-pointer convention is
 recorded in `docs/adr/0001-explicit-setup-pointer-only-for-hard-dependencies.md`.
+
+## Checks
+
+`python3 scripts/check_governance.py` enforces the rules above — bucket
+layout, README catalogue, `plugin.json`, frontmatter, links, and cross-skill
+references — and runs in CI (`.github/workflows/governance.yml`) on every
+push to `main` and every pull request, with its unit tests
+(`python3 -m unittest discover -s scripts/tests`). Run both before pushing.
+When you rename, merge, or remove a skill, add the old name to
+`RETIRED_SKILLS` in the script so stale references to it fail the check.
 
 ## Agent skills
 

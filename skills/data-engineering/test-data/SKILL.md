@@ -77,7 +77,7 @@ Don't test in production after the fact. Use **WAP**:
 
 This is blue-green deployment for data: consumers never see unaudited data,
 and you can roll back to the backup instantly. Make every load idempotent so
-re-runs are safe (see `pipeline-design` if installed).
+re-runs are safe (see `solution-design` if installed).
 
 ## Deliver
 

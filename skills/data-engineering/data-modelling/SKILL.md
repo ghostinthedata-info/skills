@@ -6,9 +6,10 @@ description: Base orchestrator for designing analytics data models. Drives the K
 # Data Modeling
 
 This is the **entry point** for any analytics modeling task. It does not do
-the deep work itself — it sequences the work and hands off to the focused
-skills and reference files below. 
-emit Snowflake SQL unless `docs/agents/platform.md` says otherwise.
+the deep work itself — it sequences the work and hands off to the reference
+files below. Emit Snowflake SQL unless `docs/agents/platform.md` says
+otherwise; SCD1, SCD2, BACKFILLING and FACT-TABLES use Snowflake syntax as
+worked examples, so translate them to the target dialect.
 
 Kimball's core move: **separate measurements (facts) from context
 (dimensions)**, declare the grain before anything else, and pick history
@@ -33,8 +34,8 @@ DDL. The most expensive modeling mistakes are committed silently at this step.
 
 ### 2. Apply the four-step Kimball process
 
-Hand off to **`dimensional-modeling`** (if installed) for the full flow.
-Summary:
+Summary (dimension techniques, conformed dimensions, and the bus matrix are in
+[DIMENSIONS.md](./DIMENSIONS.md)):
 
 1. **Select the business process** — the verb (taking an order, a payment).
 2. **Declare the grain** — one unambiguous sentence; most atomic possible.
@@ -43,25 +44,23 @@ Summary:
 
 ### 3. Design the facts
 
-Hand off to **`fact-table-design`** (if installed) and to
-[FACT-TABLES.md](./FACT-TABLES.md) for the Snowflake
-treatment — transaction vs periodic vs accumulating snapshot, and additivity
-classification for every measure.
+Use [FACT-TABLES.md](./FACT-TABLES.md) — transaction vs periodic vs
+accumulating snapshot, additivity classification for every measure, factless
+facts, and degenerate dimensions.
 
 ### 4. Design the dimensions and choose history policy per attribute
 
 Surrogate-key every dimension; keep the natural/business key as a column for
 lineage, and for SCD2 carry the **durable ("super-natural") key** that ties
 all versions of an entity together — and put that durable key on the fact too,
-so you can report all history by current attributes. See **`keys`** (if
-installed) for the full decision rules, composite-key validation, and
-anti-patterns. Most warehouses (Snowflake included) don't enforce key
+so you can report all history by current attributes. See
+[KEYS.md](./KEYS.md) for the full decision rules, composite-key validation,
+and anti-patterns. Most warehouses (Snowflake included) don't enforce key
 uniqueness — **test** every key for unique + not-null.
 
-For each dimension attribute, decide the SCD type. Hand off to
-**`slowly-changing-dimensions`** (if installed) for the full type catalogue.
-For the two you'll reach for >90% of the time, use the Snowflake-specific
-references:
+For each dimension attribute, decide the SCD type with
+[SCD-TYPES.md](./SCD-TYPES.md) (the full 0–7 catalogue). For the two you'll
+reach for >90% of the time, use the Snowflake-specific references:
 
 * [SCD1.md](./SCD1.md) — overwrite (Type 1).
 * [SCD2.md](./SCD2.md) — history rows (Type 2).
@@ -71,7 +70,9 @@ references:
 Only when you must reconstruct history from full source. See
 [BACKFILLING.md](./BACKFILLING.md) for the
 deterministic, rebuildable (Healing Tables) approach in Snowflake — zero-copy
-clone test harness, two-step RAW→HST staging, and partition-level loads.
+clone test harness, two-step RAW→HST staging, and partition-level loads — and
+[HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) for tool-agnostic
+pseudo-SQL of all six steps.
 
 ## Clarifying questions (ask these before emitting DDL)
 
@@ -99,20 +100,22 @@ Ask only the ones not already answered by profiling or the user:
 
 | File | When to open it |
 |---|---|
+| [DIMENSIONS.md](./DIMENSIONS.md) | Dimension design rules and techniques, conformed dimensions, bus matrix, aggregates. |
+| [KEYS.md](./KEYS.md) | Business/surrogate/composite/durable keys, naming, anti-patterns. |
+| [SCD-TYPES.md](./SCD-TYPES.md) | Choosing a history policy per attribute — SCD types 0–7. |
 | [SCD1.md](./SCD1.md) | Overwrite-in-place dimension attributes on Snowflake. |
 | [SCD2.md](./SCD2.md) | History-tracking dimensions, effectivity intervals, validation. |
 | [BACKFILLING.md](./BACKFILLING.md) | Loading/rebuilding history into an SCD2 deterministically. |
+| [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) | Tool-agnostic pseudo-SQL for the six Healing-Table steps. |
 | [FACT-TABLES.md](./FACT-TABLES.md) | Fact grain, the three types, additivity, factless/degenerate. |
 
 ## Related skills (compose with these if installed)
 
 * `profile-data` — run first (step 0).
-* `dimensional-modeling` — the four-step process and dimension techniques.
-* `slowly-changing-dimensions` — the full SCD type catalogue (0–7).
-* `fact-table-design` — grain/type selection and measure discipline.
-* `keys` — business/surrogate/composite/durable key design and anti-patterns.
-* `test-data` / `keys` / `conformed-dimensions` — if installed, for tests,
-  surrogate-key rules, and the bus matrix.
+* `gather-requirements` / `solution-design` — pin grain, consumers, and
+  history needs before you model.
+* `test-data` — key, referential-integrity, and SCD2 temporal-integrity tests.
+* `data-security-classification` — classify columns as you design them.
 
 ## Output contract
 

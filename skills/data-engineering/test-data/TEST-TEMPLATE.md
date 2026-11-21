@@ -130,5 +130,5 @@ everything become "error" — severity inflation destroys the signal.
 3. **Publish** — only on green, and only after backing up current production.
    Alert on failure; never publish on red.
 
-Make every load idempotent so re-runs are safe (see `pipeline-design` if
+Make every load idempotent so re-runs are safe (see `solution-design` if
 installed).

@@ -29,10 +29,10 @@ Don't classify on the symptom alone. Severity = **impact** (how bad / how wide) 
 - *Data integrity:* delayed (will self-heal) vs **wrong** (silently misleading) vs
   **lost** (unrecoverable). Wrong data is worse than missing data — people may act
   on it unknowingly.
-- *Audience:* internal analysts vs faculty/business vs board/executive.
+- *Audience:* internal analysts vs business stakeholders vs board/executive.
 
 **Urgency — how time-sensitive:**
-- Is a decision or deadline (board pack, payroll, enrolment census, funding
+- Is a decision or deadline (board pack, payroll, month-end close, regulatory
   submission) dependent on this data *today*?
 - Reporting day vs quiet period.
 - A delay that resolves before anyone needs the data is effectively D4.
@@ -64,7 +64,7 @@ deserves a review even though the tier alone wouldn't require one.
 
 | | D1 | D2 | D3 | D4 |
 |---|---|---|---|---|
-| Initial notification | T+30 min, all groups | T+1 hr, business/faculty | T+2 hrs, business/faculty | Log in Jira only |
+| Initial notification | T+30 min, all groups | T+1 hr, business | T+2 hrs, business | Log only |
 | Status updates | Every 2 hrs until resolved | As needed | — | — |
 | Roles (Lead/Comms/Liaison) | Always separated | Always separated | May be one person | May be one person |
 | Executive awareness | Always | At Lead's discretion | No | No |
@@ -72,7 +72,7 @@ deserves a review even though the tier alone wouldn't require one.
 | Post-incident review | Yes, ≤2 business days | If requested by leadership | Only if recurring | No |
 | Data Ops & Analytics | Init+Upd+Res | Init+Res | Init+Res | No contact |
 | Business data consumers | Init+Upd+Res | Init+Upd+Res | Init+Res | No contact |
-| EDP internal (BCC) | Always | Always | Always | Always |
+| Team distribution list (BCC, if configured) | Always | Always | Always | Always |
 
 ## Quick decision flow
 

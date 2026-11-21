@@ -9,3 +9,5 @@ skills-lock.json
 .DS_Store
 
 ./skills/in-progress/
+# Python bytecode (scripts/check_governance.py tests)
+__pycache__/

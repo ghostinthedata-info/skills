@@ -108,7 +108,7 @@ Scope changes mid-slice get added here rather than absorbed.]
 |------------|-------|-----------|--------|
 | [e.g. Vendor API access provisioned] | [name] | [date] | Open / Done |
 
-**Risks** — pull relevant ones from `common-risks.md`; add project-specific risks.
+**Risks** — pull relevant ones from `COMMON-RISKS.md`; add project-specific risks.
 
 | Risk | Likelihood | Impact | Mitigation | Owner |
 |------|-----------|--------|------------|-------|

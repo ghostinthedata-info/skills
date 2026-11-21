@@ -16,9 +16,20 @@ description: >
 # Data Incident Management
 
 This skill turns a raw technical incident into structured, calm, stakeholder-ready
-communication and a closed-loop learning process. It encodes the EDP incident
-communications playbook plus current SRE / data-observability best practice
-(Detect → Triage → Contain → Diagnose → Resolve → Communicate → Learn → Prevent).
+communication and a closed-loop learning process. It encodes a data team's
+incident communications playbook plus current SRE / data-observability best
+practice (Detect → Triage → Contain → Diagnose → Resolve → Communicate → Learn
+→ Prevent).
+
+## First use in this repo — load or record the team's specifics
+
+Read `docs/agents/incident.md` if it exists. It holds what varies per team:
+the distribution list to BCC on incident emails (or "none"), where incidents
+are logged and with which label, and any changes to the default D1–D4 cadence
+in `CLASSIFICATION.md`. If it doesn't exist, ask for those three things once,
+offer to write them there, and use the defaults meanwhile: no BCC, log in the
+repo's issue tracker (`docs/agents/issue-tracker.md`, if present) with label
+`data-incident`, cadence as written. Never invent an email address.
 
 ## When to use this skill
 
@@ -40,7 +51,7 @@ the spine; the supporting files do the heavy lifting:
    because data is unavailable.
 2. **Communicate early, even without answers.** A short "we're aware and
    investigating" message prevents stakeholders from escalating or losing trust.
-3. **Write for the audience.** Leadership and faculty don't need internals — they
+3. **Write for the audience.** Leadership and business stakeholders don't need internals — they
    need to know what they can/can't rely on and when it's fixed.
 4. **Be specific about impact.** "Today's dashboard figures are 6 hours out of
    date" beats "data may be delayed".
@@ -50,7 +61,7 @@ the spine; the supporting files do the heavy lifting:
    individuals as the cause in any written artefact.
 7. **Omit user-identifiable data** (individual emails, names) from stakeholder
    comms.
-8. **Only produce what was asked.** Don't generate a Jira ticket, PIR, or exec
+8. **Only produce what was asked.** Don't generate a ticket, PIR, or exec
    summary unless it's requested or the severity requires it.
 
 ## Workflow
@@ -63,7 +74,8 @@ for D1/D2 they run in parallel with separate owners.
 - Capture **detected-at timestamp**, the symptom, and who/what surfaced it
   (monitor, alert, stakeholder report).
 - Identify the affected report/dashboard/feed and the source system
-  (Workday, Salesforce, Canvas, StudentOne, Oracle, S3, Snowflake, DMS, dbt).
+  (e.g. an HR, CRM or finance system, object storage, a replication/CDC job,
+  the warehouse, or the transform layer).
 
 ### 2. Classify (severity + impact + risk)
 - Open `CLASSIFICATION.md` and assign **D1–D4**.
@@ -83,7 +95,8 @@ for D1/D2 they run in parallel with separate owners.
 - Use **6.1 Initial Notification** from `EMAIL_TEMPLATES.md`.
 - Send per the cadence in `CLASSIFICATION.md`
   (D1: T+30min, D2: T+1hr, D3: T+2hrs, D4: log only).
-- **Always BCC** `edpteam@unimelb.edu.au`.
+- **BCC the team's distribution list** if `docs/agents/incident.md` names one
+  (see *First use* above).
 - For D1 (and D2 at the lead's discretion) flag executive awareness.
 
 ### 5. Diagnose (root cause)
@@ -104,7 +117,8 @@ for D1/D2 they run in parallel with separate owners.
 - State clearly whether data is fully backfilled or a gap remains.
 
 ### 8. Log
-- Log in Jira (all severities), label `data-incident`. Include: affected
+- Log it where `docs/agents/incident.md` says (default: the repo's issue
+  tracker), all severities, label `data-incident`. Include: affected
   system/pipeline/report, detected-at, resolved-at, severity, brief root cause,
   stakeholders-notified (Y/N), link to PIR if applicable.
 

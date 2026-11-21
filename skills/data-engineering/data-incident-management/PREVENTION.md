@@ -29,13 +29,13 @@ Map the root cause to the right preventative control:
 | Replication / ingestion failure (DMS) | Freshness + row-count monitor; duplicate-file handling in the restart runbook |
 | Duplicate / missing records after restart | Idempotency check; document the restart edge case in the runbook |
 | Source platform slowdown (e.g. S3) | Timeout/latency alert; SLA on batch windows |
-| API timeout (e.g. Canvas) | Retry-with-backoff; alert on repeated timeouts |
+| API timeout (e.g. a SaaS source API) | Retry-with-backoff; alert on repeated timeouts |
 
 ## Three classes of preventative action
 
 For each PIR action, decide which lever it pulls:
 
-1. **Detect earlier** — monitors and alerts so EDP finds it before stakeholders
+1. **Detect earlier** — monitors and alerts so the data team finds it before stakeholders
    do. Track toward lower Mean Time To Detect. Cover freshness, volume/row-count
    anomalies, schema drift, and validation failures.
 2. **Prevent entirely** — tests, validation, contracts, and constraints that stop

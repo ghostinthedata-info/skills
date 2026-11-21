@@ -5,10 +5,10 @@
 
 Methodology and practice skills for AI coding agents — tuned for data
 engineering, from the [Ghost in the Data](https://ghostinthedata.info) blog.
-Repo structure focused on the
-durable, vendor-neutral parts of the data craft: profiling, requirements,
-dimensional & vault modeling, keys, slowly changing dimensions, testing,
-incident communications, performance, and data products.
+Focused on the durable, vendor-neutral parts of the data craft: profiling,
+requirements and solution design, dimensional modelling (keys, slowly
+changing dimensions, facts, backfills), testing, performance, incident
+management, and security classification.
 
 These skills are deliberately **tool-agnostic**. There is no Snowflake-only
 or BigQuery-only logic baked in — fork this repo and add a cloud-specific
@@ -34,6 +34,8 @@ They are small, composable, and opinionated. Hack on them. Make them yours.
      (Snowflake, BigQuery, Databricks/Spark, Redshift, Postgres, or "other").
    - Ask which **transform/orchestration tooling** you use
      (dbt, Airflow, Dagster, SQLMesh, plain SQL, or "other").
+   - Ask where your **issues live** (GitHub, GitLab, local markdown, or
+     another tracker) and which **triage labels** you use.
    - Ask your **domain-doc layout** (single `CONTEXT.md` or a monorepo
      `CONTEXT-MAP.md`).
 
@@ -62,8 +64,13 @@ the skills read either.
 
 Copy any skill folder into your agent's skills directory
 (`.claude/skills/<name>/` for Claude Code, `.agents/skills/<name>/` for
-agents that use `AGENTS.md`), or register this repo as a Claude Code plugin
-marketplace and `/plugin install` from it.
+agents that use `AGENTS.md`), or install the whole pack as a Claude Code
+plugin:
+
+```
+/plugin marketplace add ghostinthedata-info/skills
+/plugin install ghost-skills@ghost-skills
+```
 
 ## Why these skills exist
 
@@ -78,28 +85,32 @@ fixes so your agent stops re-learning them every session.
 
 ### Discovery
 - **[profile-data](skills/data-engineering/profile-data/SKILL.md)** — Profile a new dataset before you build on it: row counts, cardinality, null/blank analysis, key-uniqueness, distributions, and an optional saved baseline for drift detection.
-- **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — Elicit and pin down requirements for a pipeline or model: grain, sources, consumers, definitions, freshness/volume SLAs, historization, and acceptance criteria — one question at a time.
-- **[refine-context](skills/data-engineering/refine-context/SKILL.md)** — Stress-test a data plan against the project's domain model and documented decisions, sharpen terminology, and update `CONTEXT.md` and ADRs inline as decisions crystallise.
+- **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — Elicit and pin down requirements for a pipeline or model: grain, sources, consumers, definitions, freshness/volume SLAs, historization, and acceptance criteria — one question at a time. Records terms in `CONTEXT.md` and hard-to-reverse decisions as ADRs.
+- **[solution-design](skills/data-engineering/solution-design/SKILL.md)** — From fuzzy ask to a one-page solution design: value discovery (pains, gains, consumer profiles), grain, sources and authority, SLAs, a pattern recipe with an SVG overview, 1–5 day work packages, a decisions register, and risks.
 
 ### Modeling
-- **[dimensional-modeling](skills/data-engineering/dimensional-modeling/SKILL.md)** — Kimball's four-step process: select the business process, declare the grain, identify dimensions, identify facts. Fact-table types, conformed dimensions, and the bus matrix.
-- **[fact-table-design](skills/data-engineering/fact-table-design/SKILL.md)** — Choose the right fact-table grain and type (transaction, periodic snapshot, accumulating snapshot) and classify each measure as additive, semi-additive, or non-additive. Factless facts and degenerate dimensions.
-- **[keys](skills/data-engineering/keys/SKILL.md)** — Business, natural, surrogate, composite, and durable ("super-natural") keys: when to use which, and the anti-patterns that bite later.
-- **[slowly-changing-dimensions](skills/data-engineering/slowly-changing-dimensions/SKILL.md)** — SCD types 0–7, trade-offs, and the Healing Tables approach to deterministic, path-independent SCD2.
+- **[data-modelling](skills/data-engineering/data-modelling/SKILL.md)** — Entry point for analytics modelling, Kimball grain-first: profile, pin grain and history, then design facts (transaction / periodic / accumulating, additivity), dimensions and keys (surrogate, durable, conformed, the bus matrix), SCD types 0–7 with SCD1/SCD2 implementations, and deterministic Healing-Table backfills.
 
 ### Quality
 - **[test-data](skills/data-engineering/test-data/SKILL.md)** — A test plan you can defend: what to test (uniqueness, referential integrity, nulls, accepted values, freshness, volume/variance), severity levels, and where tests live (Write-Audit-Publish).
-- **[performance-tuning](skills/data-engineering/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. Tool-agnostic.
-- **[spark-performance](skills/data-engineering/spark-performance/SKILL.md)** — Tune distributed Spark jobs: partition counts, minimising shuffles, broadcasting small tables, handling skew, deliberate caching, narrow vs wide transformations.
+- **[performance-tuning](skills/data-engineering/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. A tool-agnostic method plus engine references for Oracle/SQL Server, cloud warehouses, and Spark (shuffles, skew, broadcast joins, caching).
 
 ### Operations
-- **[incident-comms](skills/data-engineering/incident-comms/SKILL.md)** — The communications workflow for a data incident: who to notify and when, severity classification, update cadence, copy-paste templates, and the post-incident review.
-- **[pipeline-design](skills/data-engineering/pipeline-design/SKILL.md)** — Idempotency, reproducibility, backfills, and defensive engineering as default design principles.
-- **[data-as-a-product](skills/data-engineering/data-as-a-product/SKILL.md)** — Data mesh thinking: domain ownership, data-as-a-product (discoverable, trustworthy, SLAs), self-serve platform, federated computational governance.
+- **[data-incident-management](skills/data-engineering/data-incident-management/SKILL.md)** — Work a data or reporting incident end to end: classify severity (D1–D4), contain, notify on a set cadence with copy-paste emails, resolve, run a blameless post-incident review, and feed the fix back as a permanent test or monitor.
 - **[data-security-classification](skills/data-engineering/data-security-classification/SKILL.md)** — Classify data by sensitivity and apply the right controls (access, masking, encryption, auditing) driven by regulatory and confidentiality requirements. The four A's, PII/PHI, least privilege.
 
+### Management
+- **[de-feedback](skills/management/de-feedback/SKILL.md)** — Honest, empathetic feedback for data engineers at any level: set the expected level (SFIA-anchored), rate observed behaviour as underperform / meet / exceed across technical, delivery, collaboration, and leadership rubrics, and write the narrative.
+
+### Productivity
+- **[caveman](skills/productivity/caveman/SKILL.md)** — Ultra-compressed reply mode: drops filler and pleasantries but keeps full technical accuracy, for when you want fewer tokens.
+- **[teach](skills/productivity/teach/SKILL.md)** — Turn the workspace into a tutor that runs over many sessions: a mission, lessons, reference sheets, a glossary, and learning records that track what you've actually learned.
+- **[write-a-skill](skills/productivity/write-a-skill/SKILL.md)** — Write a new agent skill with the right structure, progressive disclosure, bundled resources, and a description that triggers reliably.
+
 ### Setup
-- **[setup-ghost-skills](skills/setup/setup-ghost-skills/SKILL.md)** — Scaffold the per-repo config (warehouse/dialect, tooling, domain-doc layout) the other skills consume. Run once per repo.
+- **[setup-ghost-skills](skills/setup/setup-ghost-skills/SKILL.md)** — Scaffold the per-repo config the other skills consume (warehouse/dialect, tooling, issue tracker, triage labels, domain-doc layout). Run once per repo.
+
+Drafts live in [`skills/in-progress/`](skills/in-progress/) and aren't part of the pack until they're promoted.
 
 ## Credits & sources
 
@@ -107,7 +118,7 @@ Paradigms drawn from **Chris Hillman's _Ghost in the Data_**
 (https://ghostinthedata.info) — Healing Tables, Write-Audit-Publish,
 "Don't Go Dark", the pipeline shifting-right framing, and the data-profiling
 and data-vault posts. Modeling grounded in the **Kimball Group**
-(kimballgroup.com) dimensional-modeling techniques, **Dan Linstedt's Data
-Vault 2.0**, and **Zhamak Dehghani's data mesh** principles. 
+(kimballgroup.com) dimensional-modeling techniques and **Dan Linstedt's Data
+Vault 2.0**.
 
 MIT licensed. Forks for cloud-specific extensions are encouraged.

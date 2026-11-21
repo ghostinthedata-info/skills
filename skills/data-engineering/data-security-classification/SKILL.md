@@ -27,7 +27,8 @@ what regulates it. A workable tiering:
   regulator-defined categories.
 
 The classification is **business metadata on the column** — record it in the
-catalog (see `metadata-and-lineage` if installed) and let the steward own it.
+catalog or the model's own metadata (see *Where to record it* below) and let
+the steward own it.
 The PII regex scan in `profile-data` (if installed) is where the candidates are
 first found; this skill decides the tier and the controls.
 

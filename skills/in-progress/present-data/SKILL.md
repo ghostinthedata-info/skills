@@ -11,9 +11,8 @@ the step analysts are least trained for. A chart's job is not to show data; it
 is to move a specific person to a specific decision. Tools don't know your
 story, so the work is yours. Lessons here are tool-agnostic.
 
-This is the consumer-facing complement to `data-as-a-product` (which is about
-owning a dataset as a product); reach for this skill when communicating a
-*finding*, not shipping a table.
+This is about communicating a *finding*, not shipping a table — reach for it
+when results need to drive a decision.
 
 ## Explanatory, not exploratory (start here)
 

@@ -9,7 +9,7 @@ A single agent capability — a folder under `skills/<bucket>/<name>/` containin
 _Avoid_: command, plugin, behavior
 
 **Bucket**:
-A top-level category folder under `skills/` that groups skills by purpose: `data-engineering/`, `setup/`, `productivity/`, and `in-progress/`.
+A top-level category folder under `skills/` that groups skills by purpose: `data-engineering/`, `management/`, `setup/`, `productivity/`, and `in-progress/`.
 _Avoid_: category, group, pack folder
 
 **Pack**:

@@ -34,8 +34,8 @@ copy-paste review pass see [SQL-REVIEW-CHECKLIST.md](SQL-REVIEW-CHECKLIST.md).
   *Tell:* an `id` column sitting next to a perfectly good natural/compound key
   that is left un-enforced; duplicate rows that differ only by `id`. *Fix:*
   name the key after what it identifies, and **still declare the natural key
-  UNIQUE**. Use a surrogate deliberately, not automatically (see `keys` if
-  installed).
+  UNIQUE**. Use a surrogate deliberately, not automatically (see
+  `data-modelling` if installed).
 * **Keyless Entry** — no foreign-key constraints, "for flexibility/speed."
   *Tell:* orphaned rows, cleanup scripts, "the app guarantees it." *Fix:*
   declare FK constraints; let the database enforce referential integrity.

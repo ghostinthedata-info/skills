@@ -1,20 +1,20 @@
 {
   "name": "ghost-skills",
+  "description": "Methodology skills for data-engineering agents — profiling, requirements and solution design, dimensional modelling (keys, SCDs, facts, backfills), testing, performance, incidents, and security classification.",
+  "author": { "name": "Chris Hillman" },
   "skills": [
     "./skills/data-engineering/profile-data",
     "./skills/data-engineering/gather-requirements",
-    "./skills/data-engineering/refine-context",
-    "./skills/data-engineering/dimensional-modeling",
-    "./skills/data-engineering/fact-table-design",
-    "./skills/data-engineering/keys",
-    "./skills/data-engineering/slowly-changing-dimensions",
+    "./skills/data-engineering/solution-design",
+    "./skills/data-engineering/data-modelling",
     "./skills/data-engineering/test-data",
     "./skills/data-engineering/performance-tuning",
-    "./skills/data-engineering/spark-performance",
+    "./skills/data-engineering/data-incident-management",
     "./skills/data-engineering/data-security-classification",
-    "./skills/data-engineering/incident-comms",
-    "./skills/data-engineering/pipeline-design",
-    "./skills/data-engineering/data-as-a-product",
+    "./skills/management/de-feedback",
+    "./skills/productivity/caveman",
+    "./skills/productivity/teach",
+    "./skills/productivity/write-a-skill",
     "./skills/setup/setup-ghost-skills"
   ]
 }

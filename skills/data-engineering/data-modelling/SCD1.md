@@ -6,7 +6,7 @@ a name). Kimball's caveat: an overwrite silently invalidates pre-built
 aggregates and makes the *same* historical report return different totals
 before vs. after — fine for a genuine correction, dangerous if anyone relies
 on point-in-time consistency. When in doubt whether history matters, it's
-SCD2 (see [scd2.md](./scd2.md)).
+SCD2 (see [SCD2.md](./SCD2.md)).
 
 ## Shape
 

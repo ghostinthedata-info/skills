@@ -29,7 +29,13 @@ every question, give your recommended default so they can react, not invent.
 **Definitions / ubiquitous language**
 * Define every metric and entity precisely. "Active customer" how, exactly?
   "Revenue" — gross, net, returns within 30 days included? Capture these in
-  `CONTEXT.md` so two people never compute the same metric two ways.
+  `CONTEXT.md` so two people never compute the same metric two ways — write
+  each term down as soon as it resolves, using
+  [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md). Create the file lazily, only when
+  there's a term to record.
+* When a decision is hard to reverse, surprising without context, and the
+  result of a real trade-off ("why incremental, not full refresh"), record it
+  as an ADR in `docs/adr/` using [ADR-FORMAT.md](./ADR-FORMAT.md).
 
 **SLAs** (these are pipeline-level facts and can differ per source system —
 capture them here, per pipeline, not in repo-wide config)
@@ -41,7 +47,7 @@ capture them here, per pipeline, not in repo-wide config)
 
 **Historization**
 * Do consumers need point-in-time / "as it was when…" answers? If yes, you'll
-  need SCD2 (see `slowly-changing-dimensions` if installed; the core rule:
+  need SCD2 (see `data-modelling` if installed; the core rule:
   new row per change, validity interval, current flag). If not, don't pay
   for it.
 

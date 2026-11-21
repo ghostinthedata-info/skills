@@ -1,10 +1,11 @@
 # Email Templates — Data Incident Communications
 
 Rules that apply to every email:
-- Send from the EDP team address or the Communications Lead.
-- **Always BCC `edpteam@unimelb.edu.au`.**
+- Send from the data team's shared address or the Communications Lead.
+- **BCC the team's incident distribution list** if `docs/agents/incident.md`
+  names one. Never invent or guess an address.
 - Structure: what happened → impact → root cause → current status → next steps.
-- Plain English. No internal jargon for business/faculty audiences.
+- Plain English. No internal jargon for business audiences.
 - **Never include individual user emails or names** as data.
 - Match tone to severity: calm for D3/D4, crisp and prompt for D1/D2. Never alarmist.
 - Fill every `[bracketed]` placeholder or delete the line.
@@ -28,7 +29,7 @@ summary dashboard isn't reflecting data from today's overnight refresh."]
 be understated. We recommend not using the dashboard for decision-making until
 resolved."]
 
-**Current status:** Under investigation by the EDP team.
+**Current status:** Under investigation by the data team.
 
 **Expected resolution:** [Estimate if known, or "We'll provide an update by [time]."]
 
@@ -106,14 +107,14 @@ awareness.
 **Incident:** [One-line description]
 **Severity:** [D1 / D2]
 **Duration:** [Start time → End time]
-**Stakeholders affected:** [Teams/faculties impacted]
+**Stakeholders affected:** [Teams/business units impacted]
 **Root cause:** [Plain-English explanation of what went wrong]
 **Resolution:** [What was done to fix it]
 
 **Preventative actions:**
 - [Action 1 — e.g. alerting threshold lowered to detect failure within 15 minutes]
 - [Action 2 — e.g. runbook updated with manual reprocessing steps]
-- [Action 3 — e.g. Jira raised for pipeline resilience improvement: LINK]
+- [Action 3 — e.g. ticket raised for pipeline resilience improvement: LINK]
 
 Please don't hesitate to reach out if you'd like to discuss further.
 

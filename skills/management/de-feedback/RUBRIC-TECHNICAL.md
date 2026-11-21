@@ -1,6 +1,6 @@
 # Rubric — Technical Craft
 
-Rate each skill against the **Meet** bar for the engineer's *expected* level (from `levels.md`).
+Rate each skill against the **Meet** bar for the engineer's *expected* level (from `LEVELS.md`).
 - **Underperform** = below their level's Meet bar.
 - **Meet** = at it.
 - **Exceed** = at/above the *next* level's Meet bar.

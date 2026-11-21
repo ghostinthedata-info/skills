@@ -66,13 +66,13 @@ your platform's actual features:
 
 * **Traditional transactional RDBMS — Oracle, SQL Server** (B-tree indexes,
   optimiser stats, lock/latch contention, plan baselines): read
-  [references/rdbms-oracle-mssql.md](./references/rdbms-oracle-mssql.md).
+  [RDBMS-ORACLE-MSSQL.md](./RDBMS-ORACLE-MSSQL.md).
 * **Cloud / MPP warehouses — Snowflake, BigQuery, Redshift, Databricks SQL**
   (micro-partitions, pruning, clustering, warehouse sizing, slot/credit
-  cost): read [references/cloud-warehouse.md](./references/cloud-warehouse.md).
+  cost): read [CLOUD-WAREHOUSE.md](./CLOUD-WAREHOUSE.md).
 * **Spark — Spark SQL, PySpark, Databricks, Glue, EMR** (shuffle, partition
   counts, skew/stragglers, AQE, broadcast joins, caching, spill): read
-  [references/spark.md](./references/spark.md).
+  [SPARK.md](./SPARK.md).
 
 If a workload spans engines (e.g. Spark writing to Snowflake), read both and
 tune the dominant stage first.

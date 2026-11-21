@@ -1,6 +1,6 @@
 ---
 name: setup-ghost-skills
-description: Sets up an `## Agent skills` block in AGENTS.md/CLAUDE.md and `docs/agents/` so the ghost-skills pack knows this repo's warehouse platform & SQL dialect, transform/orchestration tooling, issue tracker (GitHub or local markdown), triage label vocabulary and domain-doc layout. Run before first use of profile-data, test-data, performance-tuning, dimensional-modeling, or data-vault — or if those skills appear to be missing context about the platform, tooling, or domain docs.
+description: Sets up an `## Agent skills` block in AGENTS.md/CLAUDE.md and `docs/agents/` so the ghost-skills pack knows this repo's warehouse platform & SQL dialect, transform/orchestration tooling, issue tracker (GitHub or local markdown), triage label vocabulary and domain-doc layout. Run before first use of profile-data, test-data, performance-tuning, data-modelling, or data-incident-management — or if those skills appear to be missing context about the platform, tooling, or domain docs.
 disable-model-invocation: true
 ---
 
@@ -64,10 +64,11 @@ repo if obvious, else ask.
 
 **Section C — Issue tracker.**
 
-> Explainer: The "issue tracker" is where issues live for this repo. Skills like to-issues, 
-> triage, to-prd, and qa read from and write to it — they need to know whether to call gh 
-> issue create, write a markdown file under .scratch/, or follow some other workflow you 
-> describe. Pick the place you actually track work for this repo.
+> Explainer: The "issue tracker" is where issues live for this repo. In this pack,
+> `data-incident-management` logs incidents there; issue, PRD and triage skills from
+> other packs read from and write to it too. They need to know whether to call
+> `gh issue create`, write a markdown file under .scratch/, or follow some other
+> workflow you describe. Pick the place you actually track work for this repo.
 
 Default posture: these skills were designed for GitHub. If a git remote points at GitHub, propose that. If a git remote points at GitLab (gitlab.com or a self-hosted host), propose GitLab. Otherwise (or if the user prefers), offer:
 
@@ -79,7 +80,7 @@ Default posture: these skills were designed for GitHub. If a git remote points a
 
 **Section D — Triage label vocabulary.**
 
-> Explainer: When the `triage` skill processes an incoming issue, it moves it through a state machine — needs evaluation, waiting on reporter, ready for an AFK agent to pick up, ready for a human, or won't fix. To do that, it needs to apply labels (or the equivalent in your issue tracker) that match strings *you've actually configured*. If your repo already uses different label names (e.g. `bug:triage` instead of `needs-triage`), map them here so the skill applies the right ones instead of creating duplicates.
+> Explainer: When a triage skill (none ships in this pack; you may have one installed from another pack) processes an incoming issue, it moves it through a state machine — needs evaluation, waiting on reporter, ready for an AFK agent to pick up, ready for a human, or won't fix. To do that, it needs to apply labels (or the equivalent in your issue tracker) that match strings *you've actually configured*. If your repo already uses different label names (e.g. `bug:triage` instead of `needs-triage`), map them here so the skill applies the right ones instead of creating duplicates.
 
 The five canonical roles:
 
@@ -92,7 +93,7 @@ The five canonical roles:
 Default: each role's string equals its name. Ask the user if they want to override any. If their issue tracker has no existing labels, the defaults are fine.
 
 **Section E — Domain docs.**
-> Explainer: `refine-context` and the modeling skills read `CONTEXT.md` for
+> Explainer: `gather-requirements` and `data-modelling` read `CONTEXT.md` for
 > the project's ubiquitous language and `docs/adr/` for past decisions. They
 > need to know whether you have one global context or several.
 
@@ -154,5 +155,7 @@ Then write the docs files using the seed templates in this skill folder as a sta
 Tell the user setup is complete and which skills now read these files. They
 can edit `docs/agents/*.md` directly later; only re-run this skill to switch
 platforms or reset. Note: per-pipeline SLAs are captured by
-`gather-requirements` when each pipeline is specced, and the incident
-severity matrix is tailored lazily by `incident-comms` on first use.
+`gather-requirements` (or `solution-design`) when each pipeline is specced,
+and `data-incident-management` records the team's incident specifics
+(distribution list, where incidents are logged, any severity-cadence changes)
+in `docs/agents/incident.md` on first use.

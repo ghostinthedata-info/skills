@@ -1,0 +1,38 @@
+name: Governance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    name: Skills tree, README and plugin.json agree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Unit-test the governance checker
+        run: python3 -m unittest discover -s scripts/tests -v
+
+      - name: Check the governance rules in CLAUDE.md
+        run: python3 scripts/check_governance.py
+
+  claude-loader:
+    name: Claude Code loads exactly the published skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate the plugin and marketplace manifests
+        shell: bash
+        # Needs a current Claude Code: older releases (e.g. 2.1.42) don't check
+        # that plugin.json skill paths exist, so they pass a broken manifest.
+        run: npx --yes @anthropic-ai/claude-code@latest plugin validate --json . | tee claude-report.json
+
+      - name: Cross-check the skills Claude Code would load
+        run: python3 scripts/check_governance.py --claude-report claude-report.json

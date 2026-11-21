@@ -8,7 +8,7 @@ information available at the time — never individuals as the cause. The goal i
 more resilient system, not accountability for a person.
 
 Fill this out, then use it to (a) draft the 6.4 Executive Summary if D1/D2 and
-(b) raise prevention actions per `references/prevention.md`.
+(b) raise prevention actions per `PREVENTION.md`.
 
 ---
 
@@ -16,12 +16,12 @@ Fill this out, then use it to (a) draft the 6.4 Executive Summary if D1/D2 and
 - **Incident title:**
 - **Severity:** [D1 / D2 / D3]
 - **Date:**
-- **Affected system(s)/report(s):** [Workday / Salesforce / Canvas / StudentOne /
-  Oracle / S3 / Snowflake / dbt model …]
+- **Affected system(s)/report(s):** [source system / ingestion or replication
+  job / warehouse table / transform model / dashboard …]
 - **One-line description:**
 
 ## 2. Impact
-- **Who was affected:** [teams / faculties / dashboards]
+- **Who was affected:** [teams / business units / dashboards]
 - **What they couldn't do:**
 - **Data integrity:** [delayed / wrong / lost-but-replayable / lost]
 - **Was any decision made on bad or missing data?** [Y/N — detail]
@@ -76,9 +76,9 @@ allowed it).
 - **Got lucky:** [things that happened to work but aren't reliable]
 
 ## 8. Preventative actions
-*Concrete, owned, dated. Each becomes a Jira item. See `references/prevention.md`.*
+*Concrete, owned, dated. Each becomes a ticket in the team's issue tracker. See `PREVENTION.md`.*
 
-| # | Action | Type (detect/prevent/respond) | Owner | Due | Jira |
+| # | Action | Type (detect/prevent/respond) | Owner | Due | Ticket |
 |---|---|---|---|---|---|
 | 1 | | | | | |
 | 2 | | | | | |
@@ -86,5 +86,5 @@ allowed it).
 
 ## 9. Sign-off
 - **Confirmed resolved & gap closed:** [Y/N — who signed off]
-- **PIR shared with:** [EDP team / leadership]
+- **PIR shared with:** [data team / leadership]
 - **Runbook updated:** [Y/N — link]

@@ -4,7 +4,7 @@ Type 2 adds a new row each time a tracked attribute changes, so every
 point-in-time question ("what was their region when they ordered?") has an
 exact answer. It costs row growth — apply it per attribute, only where
 point-in-time truth is genuinely needed. For overwrite-only attributes use
-[scd1.md](./scd1.md).
+[SCD1.md](./SCD1.md).
 
 ## Shape
 
@@ -76,10 +76,11 @@ WHERE cur.CUSTOMER_BK IS NULL                       -- brand-new key
 
 ## dbt snapshots
 
-Never use dbt **snapshot** as not a reliable use 
-
-for a clean rebuild from full history, use the Healing-Table approach in
-[backfilling.md](./backfilling.md) instead.
+Never use dbt **snapshots** for an SCD2 you need to trust: a snapshot records
+only the state it happens to observe on each run, so its history is
+path-dependent — a missed or late run is a permanent gap, and a logic fix
+can't be replayed over the past. For a clean rebuild from full history, use
+the Healing-Table approach in [BACKFILLING.md](./BACKFILLING.md) instead.
 
 ## Validate after every load (block on failure)
 
@@ -103,4 +104,4 @@ Carry the **durable key** on facts alongside the surrogate so you can also
 report all history by *current* attributes. An SCD2 dimension holds all three
 key types at once — the surrogate (one per version, the FK target), the
 natural/business key (lineage), and the durable "super-natural" key (joins all
-versions of one entity). See **`keys`** (if installed) for the full rules.
+versions of one entity). See [KEYS.md](./KEYS.md) for the full rules.

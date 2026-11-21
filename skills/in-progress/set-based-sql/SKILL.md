@@ -53,8 +53,8 @@ Four habits to drop — they're why procedural SQL is slow and wrong:
   them once; join to them forever.
 * **Normalise first.** Most "I need a loop" problems are unnormalised designs:
   a fact represented more than once, or a repeating group that should be rows.
-  Fix the model and the set query falls out (see `dimensional-modeling` /
-  `keys` if installed).
+  Fix the model and the set query falls out (see `data-modelling` if
+  installed).
 
 ## NULLs and three-valued logic
 

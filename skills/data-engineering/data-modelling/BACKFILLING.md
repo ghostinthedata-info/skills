@@ -1,7 +1,7 @@
 # Backfilling SCD2 History (Snowflake)
 
 Use this when you must reconstruct an SCD2 dimension's history from full
-source — not for ongoing incremental loads (that's [scd2.md](./scd2.md)).
+source — not for ongoing incremental loads (that's [SCD2.md](./SCD2.md)).
 
 ## Why not just replay day by day
 
@@ -29,11 +29,10 @@ plain incremental for very high volume or real-time.
 5. **Compress** — collapse consecutive identical states (islands-and-gaps),
    only where temporally contiguous **and** row-hash-equal.
 6. **Validate** — the temporal-integrity tests from
-   [scd2.md](./scd2.md) before publish.
+   [SCD2.md](./SCD2.md) before publish.
 
-If `slowly-changing-dimensions` is installed, its `HEALING-TABLE-TEMPLATE.md`
-has tool-agnostic pseudo-SQL for all six steps — swap in the Snowflake
-functions below.
+[HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) has tool-agnostic
+pseudo-SQL for all six steps — swap in the Snowflake functions below.
 
 ### Snowflake building blocks
 
@@ -67,10 +66,10 @@ Never rebuild a production HST table in place on the first attempt. Snowflake
 storage cost until you diverge:
 
 ```sql
-CREATE TABLE EDWPROD.HST.DIM_CUSTOMER_HST_BACKFILL_TEST
-  CLONE EDWPROD.HST.DIM_CUSTOMER_HST;
+CREATE TABLE PROD_DB.HST.DIM_CUSTOMER_HST_BACKFILL_TEST
+  CLONE PROD_DB.HST.DIM_CUSTOMER_HST;
 -- or clone the whole schema for a wider rehearsal:
-CREATE SCHEMA EDWPROD.HST_BACKFILL_TEST CLONE EDWPROD.HST;
+CREATE SCHEMA PROD_DB.HST_BACKFILL_TEST CLONE PROD_DB.HST;
 ```
 
 Rebuild into the clone, run the validation suite, diff against the live table,
@@ -94,7 +93,7 @@ re-runnable per partition, and parallelises:
 
 ```sql
 COPY INTO RAW.DIM_CUSTOMER_BACKFILL
-FROM @EDP_STAGE/customer/history/year=2024/month=03/
+FROM @HISTORY_STAGE/customer/history/year=2024/month=03/
 FILE_FORMAT = (TYPE = PARQUET)
 MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE
 ON_ERROR = ABORT_STATEMENT;
@@ -110,5 +109,5 @@ the target partition, or dedupe on the key-hash) so a re-run is safe.
 * Staged through **RAW**, validated, then promoted to HST.
 * Loaded by **partition** (e.g. month) with per-partition row-count checks.
 * All six Healing-Table steps applied; result is path-independent.
-* Full [scd2.md](./scd2.md) temporal-integrity suite passes before publish.
+* Full [SCD2.md](./SCD2.md) temporal-integrity suite passes before publish.
 * Load is idempotent — a re-run produces an identical table.

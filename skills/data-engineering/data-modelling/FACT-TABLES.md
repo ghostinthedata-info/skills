@@ -2,8 +2,8 @@
 
 Facts hold the measurements; everything else is context. Get the **grain** and
 the **type** right and aggregation is trivial; get them wrong and every
-downstream query is a workaround. This is the Snowflake-flavoured companion to
-the `fact-table-design` skill (see it if installed for the full treatment).
+downstream query is a workaround. Worked examples use Snowflake syntax;
+translate them to the target dialect.
 
 ## Declare the grain first (non-negotiable)
 
@@ -85,7 +85,7 @@ fact row** for grouping and lineage. Don't build a single-column table for it.
 
 ## Rules & anti-patterns
 
-* FKs to dimensions are **surrogate keys** (see `keys` if installed for the
+* FKs to dimensions are **surrogate keys** (see [KEYS.md](./KEYS.md) for the
   full business/surrogate/composite/durable decision rules); never join facts
   on natural keys.
 * Every FK points at a real row — route unknowns to the dimension's
@@ -94,8 +94,8 @@ fact row** for grouping and lineage. Don't build a single-column table for it.
   dimension.
 * `NULL` is fine for a missing **measure**; never allowed in a **foreign
   key** — use the ghost row.
-* SCD policy is chosen per **dimension attribute** (see [scd1.md](./scd1.md) /
-  [scd2.md](./scd2.md)), not on the fact.
+* SCD policy is chosen per **dimension attribute** (see [SCD1.md](./SCD1.md) /
+  [SCD2.md](./SCD2.md)), not on the fact.
 * Carry the **durable key** on the fact alongside the surrogate for
   point-in-time reporting by current attributes.
 
