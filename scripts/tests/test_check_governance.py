@@ -320,6 +320,30 @@ class GovernanceTest(unittest.TestCase):
                         skill_md("beta", body="Use the `docx` skill to convert."))
         self.assertClean(self.repo.run())
 
+    # files git ignores ------------------------------------------------------
+
+    def git_init(self):
+        subprocess.run(["git", "init", "-q", str(self.repo.root)], check=True)
+
+    @unittest.skipUnless(shutil.which("git"), "needs git")
+    def test_git_ignored_files_are_skipped(self):
+        self.git_init()
+        self.repo.write(".gitignore", ".local/\n.DS_Store\n")
+        self.repo.write(".local/old/README.md", "[gone](./missing.md)\n")
+        self.repo.write(".local/old/skills/engineering/x/SKILL.md", "no frontmatter")
+        self.repo.write("skills/data-engineering/.DS_Store", "")
+        self.repo.write("skills/data-engineering/alpha/.DS_Store", "")
+        self.assertClean(self.repo.run())
+
+    @unittest.skipUnless(shutil.which("git"), "needs git")
+    def test_untracked_files_git_would_add_are_still_checked(self):
+        self.git_init()
+        self.repo.write("notes/README.md", "[gone](./missing.md)\n")
+        self.repo.write("skills/data-engineering/alpha/NOTES.md", "orphan")
+        report = self.repo.run()
+        self.assertFlags(report, "links", "broken link `./missing.md`")
+        self.assertFlags(report, "reachable", "alpha/NOTES.md")
+
     # Claude Code validator cross-check ------------------------------------------------
 
     def test_claude_report_must_provide_exactly_published_skills(self):

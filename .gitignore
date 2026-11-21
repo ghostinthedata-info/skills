@@ -2,12 +2,20 @@
 .agents/
 skills-lock.json
 
-# Local scratch (issues, notes, working files)
+# Local scratch: issues, notes, working files, a moved-aside old prototype
 .scratch/
+.local/
+todo.md
 
-# OS
-.DS_Store
+# Internal reference material and rejected-idea notes (not published)
+reference/
+.out-of-scope/
 
-./skills/in-progress/
-# Python bytecode (scripts/check_governance.py tests)
+# Python (scripts/check_governance.py and its tests)
 __pycache__/
+.venv/
+
+# OS and tooling
+.DS_Store
+node_modules/
+*.log

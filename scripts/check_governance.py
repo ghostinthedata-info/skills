@@ -27,13 +27,16 @@ provides exactly the published skills.
 
 Exits 1 if any check fails. Problems inside draft skills (skills/in-progress/)
 are reported as warnings, so they surface before a draft is promoted.
-Standard library only; runs on Python 3.8+.
+Files git ignores (.local/, reference/, .DS_Store, ...) are skipped, so a
+working copy checks the same as a clean checkout; files git would add are
+still checked. Standard library only; runs on Python 3.8+.
 """
 
 import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import unquote
@@ -169,7 +172,38 @@ def parse_frontmatter(text):
     return meta, None
 
 
-def load_skills(root, report):
+class Ignored:
+    """Answers "does git ignore this path?" for paths under `root`.
+
+    Outside a git work tree, or without git installed, nothing is ignored —
+    which is what a CI checkout and the unit-test fixtures need.
+    """
+
+    def __init__(self, root):
+        self.root = root
+        try:
+            out = subprocess.run(
+                ["git", "-C", str(root), "ls-files", "-z", "--others", "--ignored",
+                 "--exclude-standard", "--directory"],
+                capture_output=True, check=True).stdout
+            paths = {p for p in out.decode("utf-8", "replace").split("\0") if p}
+        except (OSError, subprocess.CalledProcessError):
+            paths = set()
+        self.files = {p for p in paths if not p.endswith("/")}
+        self.dirs = tuple(p for p in paths if p.endswith("/"))
+
+    def __call__(self, path):
+        if not (self.files or self.dirs):
+            return False
+        relpath = rel(self.root, path)
+        return relpath in self.files or (relpath + "/").startswith(self.dirs)
+
+
+def visible(paths, ignored):
+    return sorted(p for p in paths if not ignored(p))
+
+
+def load_skills(root, report, ignored=lambda path: False):
     """Discover skills and check the bucket layout."""
     skills_dir = root / "skills"
     skills = []
@@ -177,7 +211,7 @@ def load_skills(root, report):
         report.add("buckets", "skills/", "no skills/ folder")
         return skills
     known = set(PUBLISHED_BUCKETS) | set(DRAFT_BUCKETS)
-    for entry in sorted(skills_dir.iterdir()):
+    for entry in visible(skills_dir.iterdir(), ignored):
         if entry.is_file():
             report.add("buckets", rel(root, entry),
                        "stray file at the top of skills/ (skills live in skills/<bucket>/<name>/)")
@@ -194,7 +228,7 @@ def load_skills(root, report):
                            "configured published bucket is missing — remove it from "
                            "PUBLISHED_BUCKETS (and CLAUDE.md) or restore it")
             continue
-        for folder in sorted(p for p in bucket_dir.iterdir() if p.is_dir()):
+        for folder in visible((p for p in bucket_dir.iterdir() if p.is_dir()), ignored):
             skill_md = folder / "SKILL.md"
             if not skill_md.is_file():
                 report.add("buckets", rel(root, folder) + "/",
@@ -202,11 +236,11 @@ def load_skills(root, report):
                 continue
             meta, error = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
             skills.append(Skill(bucket, folder, published, meta, error))
-        for stray in sorted(p for p in bucket_dir.iterdir() if p.is_file()):
+        for stray in visible((p for p in bucket_dir.iterdir() if p.is_file()), ignored):
             report.add("buckets", rel(root, stray),
                        "stray file in a bucket (skills live in skills/<bucket>/<name>/)",
                        draft=not published)
-    for path in sorted(skills_dir.rglob("SKILL.md")):
+    for path in visible(skills_dir.rglob("SKILL.md"), ignored):
         depth = len(path.relative_to(skills_dir).parts)
         if depth != 3:
             report.add("buckets", rel(root, path),
@@ -293,13 +327,15 @@ def exists_exact(root, path):
     return True
 
 
-def markdown_files(root):
-    ignored = {".git", "node_modules", ".scratch", ".agents"}
+def markdown_files(root, ignored=lambda path: False):
+    skip = {".git", "node_modules", ".scratch", ".agents"}
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = sorted(d for d in dirnames if d not in ignored)
+        here = Path(dirpath)
+        dirnames[:] = sorted(d for d in dirnames
+                             if d not in skip and not ignored(here / d))
         for f in sorted(filenames):
-            if f.endswith(".md"):
-                yield Path(dirpath) / f
+            if f.endswith(".md") and not ignored(here / f):
+                yield here / f
 
 
 def is_draft_file(root, path):
@@ -446,8 +482,8 @@ def check_catalogue(root, skills, report):
                            f"link text `{shown}` should be the skill name `{s.dir_name}`")
 
 
-def check_links(root, report):
-    for path in markdown_files(root):
+def check_links(root, report, ignored=lambda path: False):
+    for path in markdown_files(root, ignored):
         draft = is_draft_file(root, path)
         text = path.read_text(encoding="utf-8")
         for no, line in prose_lines(text):
@@ -477,16 +513,16 @@ def case_hint(resolved):
     return ""
 
 
-def check_paths_and_reachability(root, skills, report):
+def check_paths_and_reachability(root, skills, report, ignored=lambda path: False):
     """Backticked file names must match real files; every file must be reachable."""
     for s in skills:
-        files = sorted(p for p in s.folder.rglob("*") if p.is_file())
+        files = visible((p for p in s.folder.rglob("*") if p.is_file()), ignored)
         rel_files = {p.relative_to(s.folder).as_posix(): p for p in files}
         lower = {k.lower(): k for k in rel_files}
         basenames = {}
         for k in rel_files:
             basenames.setdefault(Path(k).name.lower(), k)
-        subdirs = {p.name for p in s.folder.iterdir() if p.is_dir()}
+        subdirs = {p.name for p in s.folder.iterdir() if p.is_dir() and not ignored(p)}
         mentions = {}                          # file in skill -> files it mentions
         for k, p in rel_files.items():
             if p.suffix != ".md":
@@ -538,12 +574,12 @@ def check_paths_and_reachability(root, skills, report):
                        draft=not s.published)
 
 
-def check_references(root, skills, report):
+def check_references(root, skills, report, ignored=lambda path: False):
     published = {s.dir_name for s in skills if s.published}
     drafts = {s.dir_name for s in skills if not s.published}
     files = [root / "README.md", root / "CLAUDE.md", root / "CONTEXT.md"]
     for s in skills:
-        files.extend(sorted(s.folder.rglob("*.md")))
+        files.extend(visible(s.folder.rglob("*.md"), ignored))
 
     def judge(name, where, draft, soft, strong=False):
         """soft: the token sits in a soft-reference context ("if installed",
@@ -618,14 +654,15 @@ def check_claude_report(path, skills, plugin, report):
 def run(root, claude_report=None):
     root = Path(root).resolve()
     report = Report()
-    skills = load_skills(root, report)
+    ignored = Ignored(root)
+    skills = load_skills(root, report, ignored)
     check_bucket_docs(root, report)
     check_frontmatter(root, skills, report)
     plugin = check_manifest(root, skills, report)
     check_catalogue(root, skills, report)
-    check_links(root, report)
-    check_paths_and_reachability(root, skills, report)
-    check_references(root, skills, report)
+    check_links(root, report, ignored)
+    check_paths_and_reachability(root, skills, report, ignored)
+    check_references(root, skills, report, ignored)
     if claude_report:
         check_claude_report(claude_report, skills, plugin, report)
     return report
