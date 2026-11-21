@@ -33,9 +33,14 @@ can assert validity but only flags suspected accuracy issues for an SME.)
 
 ### 1. Shape
 * Total row count. Row count per partition/load date if partitioned.
-* Column count, names, declared types, and (for strings) max length —
-  flag any column whose real max length approaches its declared cap
-  (the "Razzle Dazzle Rose" truncation trap).
+* Column count, names, declared types, and (for strings) max length.
+* The "Razzle Dazzle Rose" trap: a type *inferred* from the values seen so far
+  (by a loader, a dataframe, or auto-detection) is too narrow for values that
+  arrive later — "Red" and "Orange" suggest `varchar(10)`, then a longer
+  colour is truncated. Compare the source's declared type with the type at
+  every hop the data lands in, never size a column from observed values
+  alone, and still flag any column whose real max length approaches its
+  declared cap.
 
 ### 2. Cardinality
 * `COUNT(DISTINCT col)` and distinct% (`distinct / total * 100`) per column.

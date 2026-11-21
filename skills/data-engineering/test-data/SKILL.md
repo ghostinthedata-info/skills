@@ -23,9 +23,16 @@ from repo-wide config.
   (catch the fourteen spellings of "active" before they accumulate).
 * **Freshness** — source/loaded-at timestamp is within the pipeline's SLA.
   Run freshness checks at least twice as often as the tightest SLA.
-* **Volume & variance** — row count is within expected bounds and today's
-  load isn't wildly off yesterday's (drift vs the saved profile baseline in
-  `docs/profiles/`, if one exists).
+* **Volume & variance** — the batch's row count sits inside a two-sided band
+  for comparable periods — too few rows is as suspicious as too many (drift vs
+  the saved profile baseline in `docs/profiles/`, if one exists).
+* **Schema** — column names, types, and nullability match the contract or the
+  baseline. A removed, renamed, retyped, or narrowed column is an error; an
+  added column warns, with an owner.
+* **Distribution** — key measures (sums, means, percentiles) and each
+  category's share stay within an agreed band of history. Plausible-but-wrong
+  values — an amount never converted to the reporting currency — pass every
+  column test; only this catches them.
 * **Business rules** — singular tests for logic that needs
   joins/aggregations ("returns after 30 days are excluded from revenue").
 
@@ -46,7 +53,8 @@ explicit and gaps are visible. Every test should map to one:
   here too: every FK resolves.
 * **Timeliness / currency** — freshness within SLA.
 * **Reasonableness** — volume/variance within expected operational bounds
-  (e.g. today within 105% of the 30-day average).
+  (e.g. fail a batch above 3× or below 0.1× the daily average — two-sided,
+  because a drop is how data loss shows up).
 
 If a critical column has no test in some dimension, that's a coverage gap to
 raise. (Same vocabulary `profile-data` uses to assess a dataset, if installed.)
@@ -58,9 +66,14 @@ raise. (Same vocabulary `profile-data` uses to assess a dataset, if installed.)
 * **warn** (flag, don't block) — soft anomalies, a few unexpected
   categorical values, mild volume drift worth a human glance.
 
-Tune thresholds as data grows — e.g. warn at >10 nulls, error at >100.
-Severity inflation (everything is "error") destroys the signal, same as it
-does for incidents.
+A new check starts at **error**. Demote it to warn only once real runs show
+it's a signal rather than a blocker, and write down why. Every warn carries an
+owner and the threshold at which it becomes an error. Review warns on a
+cadence: a check that has warned for more than two weeks with no
+investigation is either a bug to fix or a threshold to change — "known issue"
+is not a status. Change a threshold after an investigation, never just
+because the data grew. Severity inflation (everything "error", forever)
+destroys the signal too, same as it does for incidents.
 
 ## Where tests live — Write-Audit-Publish (Ghost in the Data)
 
@@ -68,16 +81,39 @@ Don't test in production after the fact. Use **WAP**:
 
 1. **Write** — build the new data into a staging table/branch, production
    untouched.
-2. **Audit** — run the full test battery against staging. Compare row counts
-   to production; validate schema, types, business rules, and historical
-   trend.
-3. **Publish** — only if the audit passes, swap staging into production —
-   **after backing up** the current production table. Alert on audit
-   failure; never publish on red.
+2. **Audit** — run the full test battery against staging. Check the new batch
+   against history (the two-sided volume band, distribution), check that
+   staging minus production is the expected change, and validate schema,
+   types, and business rules. The audit is read-only and safe to re-run.
+3. **Publish** — only if the audit passes, swap staging into production
+   **atomically** (a swap, rename, or pointer switch — never drop-and-recreate,
+   which leaves consumers a window of partial data), keeping the previous
+   version recoverable. When the audit fails, pick one per table and record
+   the choice:
+   * **Reject** — drop staging; production stays on the last good version;
+     alert.
+   * **Quarantine** — move the failing rows to an append-only quarantine store
+     (what failed, which check caught it, when it arrived), re-audit the rest,
+     publish the clean rows if that passes, and send the counts to the
+     source's owner.
 
 This is blue-green deployment for data: consumers never see unaudited data,
-and you can roll back to the backup instantly. Make every load idempotent so
-re-runs are safe (see `solution-design` if installed).
+and you can roll back quickly. Make every load idempotent so re-runs are safe
+(see `solution-design` if installed).
+
+## Test the checks themselves
+
+The battery above is **validation** — it runs on every load. **Testing** runs
+in development and CI and proves the pipeline and its checks behave:
+
+* For each business rule, state the invariant and run the check against small
+  fixed inputs: it must fire on every violating case (adjacent, overlapping,
+  identical, contained, touching at the boundary) and stay quiet on valid
+  ones. A validation query can be wrong too.
+* When a bug reaches production, write the failing test first, watch it fail,
+  fix the bug, watch it pass — and keep the test.
+* Fabricated rows belong in these tests only; business validation runs on real
+  history.
 
 ## Deliver
 

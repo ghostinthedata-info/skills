@@ -100,15 +100,17 @@ WHERE is_revenue = TRUE
 | business rule: 30-day returns | —             | error    | excluded from revenue            |
 
 Severity rule of thumb: **error** = corrupts downstream facts (keys, RI,
-not-null on keys); **warn** = soft anomaly worth a human glance. Don't let
-everything become "error" — severity inflation destroys the signal.
+not-null on keys); **warn** = soft anomaly worth a human glance. New checks
+start at error and are demoted to warn only after burn-in; every warn row
+needs an owner and the threshold at which it escalates to error. Don't let
+everything stay "error" forever — severity inflation destroys the signal.
 
 ---
 
 ## Where the tests run — Write-Audit-Publish gate
 
 ```
-            ┌──────────┐     audit fails → ALERT, never publish
+            ┌──────────┐     audit fails → ALERT; reject, or quarantine bad rows
    source ──▶  WRITE   │────────────────────────────────┐
             │ (staging │                                 │
             │  branch) │                                 ▼
@@ -119,16 +121,19 @@ everything become "error" — severity inflation destroys the signal.
             │  AUDIT   │──────────────────────────┐
             │ (full    │                           ▼
             │ battery) │                      ┌──────────┐
-            └──────────┘                      │ PUBLISH  │  back up prod first,
-                                              │  (swap)  │  then swap staging in
+            └──────────┘                      │ PUBLISH  │  keep prod recoverable,
+                                              │  (swap)  │  swap staging in atomically
                                               └──────────┘
 ```
 
 1. **Write** — build into a staging table/branch; production untouched.
-2. **Audit** — run the full battery against staging; compare row counts to
-   production; validate schema, types, business rules, trend.
-3. **Publish** — only on green, and only after backing up current production.
-   Alert on failure; never publish on red.
+2. **Audit** — run the full battery against staging; check the batch against
+   history (two-sided volume band, distribution) and that staging minus
+   production is the expected change; validate schema, types, business rules.
+3. **Publish** — only on green: swap atomically, keeping the previous version
+   recoverable. On red, either **reject** (stay on the last good version,
+   alert) or **quarantine** the failing rows to an append-only store, re-audit
+   the rest, and publish the clean rows — record which, per table.
 
 Make every load idempotent so re-runs are safe (see `solution-design` if
 installed).
