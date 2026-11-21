@@ -91,7 +91,6 @@ not yet" verdict. Don't proceed to modeling until keys pass.
 ## Template
 
 For pseudo-SQL scaffolds of every section above and the baseline report
-shape, see [PROFILE-TEMPLATE.md](./PROFILE-TEMPLATE.md) (modelled on the
-[data-quality profiling scripts](https://github.com/ghostinthedata-info/data-quality/tree/main/Data%20Profiling)).
-Keep them tool-agnostic — swap in your engine's functions (consult
+shape, see [PROFILE-TEMPLATE.md](./PROFILE-TEMPLATE.md). Keep them
+tool-agnostic — swap in your engine's functions (consult
 `docs/agents/platform.md` if present).

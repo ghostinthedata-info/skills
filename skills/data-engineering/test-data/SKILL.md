@@ -124,7 +124,5 @@ plus the WAP gate wired into the pipeline.
 
 For copy-paste scaffolds of the full battery (declarative dbt-style YAML
 and assertion SQL), the per-model test-plan shape, and the WAP gate, see
-[TEST-TEMPLATE.md](./TEST-TEMPLATE.md) (modelled on the
-[data-quality checks](https://github.com/ghostinthedata-info/data-quality/tree/main/Data%20Quality%20Checks)).
-Keep them tool-agnostic — match the flavour to your stack (consult
+[TEST-TEMPLATE.md](./TEST-TEMPLATE.md). Keep them tool-agnostic — match the flavour to your stack (consult
 `docs/agents/tooling.md` and `docs/agents/platform.md` if present).
