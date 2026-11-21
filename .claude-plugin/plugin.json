@@ -8,6 +8,7 @@
     "./skills/data-engineering/solution-design",
     "./skills/data-engineering/data-modelling",
     "./skills/data-engineering/test-data",
+    "./skills/data-engineering/reconcile-data",
     "./skills/data-engineering/performance-tuning",
     "./skills/data-engineering/data-incident-management",
     "./skills/data-engineering/data-security-classification",

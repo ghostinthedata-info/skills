@@ -93,6 +93,7 @@ fixes so your agent stops re-learning them every session.
 
 ### Quality
 - **[test-data](skills/data-engineering/test-data/SKILL.md)** — A test plan you can defend: what to test (uniqueness, referential integrity, nulls, accepted values, freshness, volume/variance), severity levels, and where tests live (Write-Audit-Publish).
+- **[reconcile-data](skills/data-engineering/reconcile-data/SKILL.md)** — Prove a changed model or a migrated table matches its source of truth: counts and key-set diffs, then per-column checksums, then a cell-by-cell diff, stopping at the first break — and graduate the keepers into permanent tests.
 - **[performance-tuning](skills/data-engineering/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. A tool-agnostic method plus engine references for Oracle/SQL Server, cloud warehouses, and Spark (shuffles, skew, broadcast joins, caching).
 
 ### Operations
