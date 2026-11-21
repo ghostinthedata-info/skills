@@ -75,12 +75,16 @@ copy-paste review pass see [SQL-REVIEW-CHECKLIST.md](SQL-REVIEW-CHECKLIST.md).
 
 ## Query traps
 
-* **Fear of the Unknown** — using a literal (`-1`, `'N/A'`, `''`) instead of
-  `NULL`, or comparing to NULL with `=`. *Tell:* `WHERE x = NULL` (always
-  false), aggregates that silently skip rows, `NOT IN` over a NULL-able set
-  returning nothing. *Fix:* use `NULL` for missing, `IS NULL`/`IS NOT NULL`,
-  and `COALESCE`; remember `NULL` is unknown under three-valued logic, not a
-  value. See `set-based-sql` if installed.
+* **Fear of the Unknown** — inventing ad-hoc literals (`-1`, `'N/A'`, `''`)
+  for missing values, or comparing to NULL with `=`. *Tell:* `WHERE x = NULL`
+  (always false), aggregates that silently skip rows, `NOT IN` over a
+  NULL-able set returning nothing, five spellings of "unknown" in one column.
+  *Fix:* use `NULL` for missing, `IS NULL`/`IS NOT NULL`, and `COALESCE`;
+  remember `NULL` is unknown under three-valued logic, not a value. See
+  `set-based-sql` if installed. *OK when:* it's a deliberate, documented
+  convention — a dimension's ghost row (`-1`) as the target for facts with no
+  match, or one agreed set of labelled unknowns ("Not Applicable", "Not
+  Provided") where the difference matters.
 * **Ambiguous Groups** — selecting non-aggregated columns not in `GROUP BY`.
   *Tell:* a query that returns an arbitrary row per group. *Fix:* group by
   every non-aggregate column, or use a window function / a join to the
@@ -97,6 +101,31 @@ copy-paste review pass see [SQL-REVIEW-CHECKLIST.md](SQL-REVIEW-CHECKLIST.md).
 * **Implicit Columns** — `SELECT *` and column-less `INSERT`. *Tell:* breakage
   when a column is added/reordered, wasted I/O, broken views. *Fix:* name the
   columns you actually need, always.
+
+## Pipeline traps (data review)
+
+Schema and query traps apply to any database. These are the ones a data
+pipeline adds — the checks a data reviewer runs on every change:
+
+* **Grain drift** — the stated grain no longer matches the actual grain.
+  *Tell:* row counts jump against production; `COUNT(*)` ≠ `COUNT(DISTINCT`
+  the grain key`)`. *Fix:* state the grain in the model's docs and test
+  uniqueness at it.
+* **Silent fan-out** — a join to a non-unique key multiplies rows and inflates
+  every sum after it. *Tell:* the output has more rows than the driving table;
+  totals rise after a join. *Fix:* join on a key that's tested unique, or
+  aggregate to the join's grain first.
+* **Unrepeatable runs** — running the same load twice gives different results.
+  *Tell:* `CURRENT_TIMESTAMP` inside business logic, blind appends, a
+  `ROW_NUMBER()` dedupe without a full tie-break. *Fix:* replace partitions or
+  merge on the grain key; take time from the data; order deterministically.
+* **Untested grain** — a new model with no unique and not-null tests at its
+  grain, a grain-changing transform with no data test, or a business rule
+  that lives only in a comment. *Fix:* the tests, in the same change.
+* **Breaking change in place** — renaming, removing, or retyping a column that
+  consumers read, with no warning. *Fix:* contracts on public models; a new
+  version alongside the old with a deprecation window; review the data diff
+  before merging.
 
 ## Application-layer traps (flag, don't fix here)
 

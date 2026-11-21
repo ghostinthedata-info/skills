@@ -42,6 +42,22 @@ holds. Antipattern names are from Karwin's *SQL Antipatterns*.
 - [ ] **Big queries are decomposed** (CTEs / steps); no accidental Cartesian
       products inflating totals. *(Spaghetti Query)*
 
+## Pipeline (data) review
+
+- [ ] **The stated grain matches the actual grain** — `COUNT(*)` equals the
+      distinct count of the grain key, and row counts make sense against
+      production. *(Grain drift)*
+- [ ] **No silent fan-out** — every join is on a key that's tested unique, or
+      the other side is aggregated first. *(Silent fan-out)*
+- [ ] **Re-runs are identical** — no `CURRENT_TIMESTAMP` in logic, no blind
+      appends, deterministic dedupe. *(Unrepeatable runs)*
+- [ ] **Tests at the grain** — unique and not-null on the grain key; data
+      tests for grain-changing transforms; business rules as tests, not just
+      comments. *(Untested grain)*
+- [ ] **Breaking changes are versioned** — contracts on public models, a
+      deprecation window, and the data diff reviewed before merge. *(Breaking
+      change in place)*
+
 ## Application boundary
 
 - [ ] **User input is parameterised / bound**; identifiers allow-listed.
