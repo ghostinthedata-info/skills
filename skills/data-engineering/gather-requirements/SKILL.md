@@ -27,9 +27,20 @@ Use [VALUE-DISCOVERY.md](./VALUE-DISCOVERY.md) for the prompts.
   more than one consumer — profile each, because their needs can conflict.
 * How they'll read it — SQL, dashboard, extract, another system — the columns
   they'll filter on, and the query latency they can live with.
-* The pain today, the gain they want, and the stakes (regulatory must-have,
-  revenue driver, nice-to-have) — the stakes set the rigour budget for the
-  design.
+* The pain today and the gain they want — as a **measurable target**.
+  Quantify the pain (hours a week of manual compilation, how long a wait
+  before it hurts, what an error costs) and the gain (what improvement would
+  make a real difference): "month-end close by day 3, not day 6", not
+  "better data".
+* The stakes, as a **criticality tier**, because each tier carries
+  obligations the design must meet:
+  * **Tier 1** — revenue reporting, regulatory returns, production ML.
+  * **Tier 2** — executive dashboards, KPI packs.
+  * **Tier 3** — ad-hoc analysis and exploration.
+* Whether the data is **regulated**, and under which regime. Regulated data
+  adds two requirements at any tier: auditability (who accessed what, when,
+  and why; lineage from source to report) and deletion (honouring erasure
+  requests within the mandated time).
 
 ### 2. Grain (the pivotal decision)
 
@@ -91,13 +102,28 @@ If none applies, don't pay for history.
 * Explicit and testable: the grain holds (uniqueness tested), the freshness
   SLA is met, each metric matches its agreed definition, and the history
   question gets the answer it should for a known past date.
+* How the value target will be measured after go-live, by whom, and when.
+
+### 8. Priority — green, orange, red
+
+Tag each requirement so effort goes where it pays:
+
+* **Green** — low effort, high impact: data from known sources or an
+  existing API, essential to the job. Build these first.
+* **Orange** — medium effort, real but not critical impact: needs extra
+  collection work (a new extract, a manual feed). Schedule them.
+* **Red** — high effort, questionable impact: custom development or a costly
+  integration for a nice-to-have. Challenge these; build them only when the
+  value target says they're worth it.
 
 ## Deliver
 
 A one-page **requirements spec**, in this order: value statement (the
-sentence in VALUE-DISCOVERY.md), consumers, **grain (bold)**, sources with
-owners and caveats, metric definitions (linked to `CONTEXT.md`), SLAs, the
-history decision, acceptance criteria, and open questions.
+sentence in VALUE-DISCOVERY.md) with its measurable target, criticality tier
+(and regime, if regulated), consumers, **grain (bold)**, sources with owners
+and caveats, metric definitions (linked to `CONTEXT.md`), SLAs, the history
+decision, acceptance criteria, each requirement's priority, and open
+questions.
 
 Then offer to publish it. If `docs/agents/issue-tracker.md` exists, publish the
 spec as one ticket following that file — titled "Requirements: <name>", with

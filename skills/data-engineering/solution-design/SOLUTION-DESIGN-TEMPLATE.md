@@ -64,6 +64,26 @@ delivery = green. Reference how the pattern-bank phases flow.]
 
 **Recipe:** Ingestion = [pattern] · Transformation = [pattern] · Delivery = [pattern]
 
+**Tier:** [1 / 2 / 3] [· regulated under [regime]] — obligations: [alerting,
+gates, SLA, audit and deletion if regulated]
+
+### Source pre-mortem — [source name]
+
+[One table per source. An unanswered question goes into the risks too.]
+
+| # | Question | Our answer | Test or monitor |
+|---|---|---|---|
+| 1 | Schema changes without warning | [detect at staging vs contract; halt + quarantine] | [contract check] |
+| 2 | Yesterday's data arrives tomorrow | [tolerance window; lookback] | [late-row rate] |
+| 3 | A primary key gets reused | [warehouse key independent of source key] | [natural key + effective date unique] |
+| 4 | NULLs in non-nullable fields | [per-column rule: accept / quarantine / reject] | [not-null tests] |
+| 5 | The source sends duplicates | [uniqueness per layer] | [duplicate rate] |
+| 6 | The job runs twice | [idempotent load] | [run-twice test] |
+| 7 | Timestamps change time zone | [UTC; source semantics documented] | [range check on times] |
+| 8 | The source has a bad day | [circuit-breakers] | [volume band, failure threshold] |
+| 9 | Who gets paged at 2am | [named rota + runbook] | [forced-failure test] |
+| 10 | Who owns this data | [named owner; change notice] | — |
+
 ---
 
 ## 3. Tasks & steps

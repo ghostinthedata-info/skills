@@ -28,8 +28,9 @@ Read the spec if there is one. Check it gives you the five facts every design
 hangs off, and ask only for the ones that are missing — if most are missing,
 suggest running `gather-requirements` first:
 
-1. **Value statement** — who it's for, the job, the pain, the gain, and the
-   stakes (the stakes set how much rigour the design earns).
+1. **Value statement** — who it's for, the job, the pain, the gain (as a
+   measurable target), and the criticality tier (with the regime, if the data
+   is regulated) — the tier sets how much rigour the design earns.
 2. **Grain** — one row represents what, in one sentence.
 3. **Sources** — each with its named owner and the agreed source of truth.
 4. **SLAs** — freshness, volume, reliability.
@@ -55,6 +56,31 @@ knowing, per source:
 * **Initial load** — day-zero from current state only, or full history
   backfill? (Decides whether a rebuildable or SCD2 design is even possible.)
 
+Then run the **pre-mortem** for each source: answer these ten questions
+before a single row lands, and put the answers in the design doc's
+pre-mortem table. An unanswered question is a risk, so log it as one.
+
+1. **Schema change without warning** — how do we detect it (compare what
+   landed with the agreed contract at staging) and respond (halt with a
+   readable alert; quarantine new columns rather than load them)?
+2. **Late-arriving data** — what's the tolerance window, and how are late rows
+   reprocessed (a lookback window over event-time partitions)?
+3. **Key reuse** — does the warehouse key stay independent of the source key,
+   with a mapping that handles a recycled ID?
+4. **NULLs where they shouldn't be** — what's the rule per column: accept,
+   quarantine, or reject?
+5. **Duplicates** — how is uniqueness defined and enforced at each layer, and
+   do we track the duplicate rate?
+6. **The job runs twice** — is every load idempotent?
+7. **Time zones** — stored in UTC, with each source's time-zone semantics
+   documented and converted on ingest?
+8. **A bad day of garbage** — what circuit-breakers stop it (a two-sided volume
+   band, a validation-failure threshold that quarantines the batch)?
+9. **Who gets paged at 2am** — a named person on a rota, with a runbook, and
+   an alert route that matches the tier?
+10. **Who owns the data** — a named source owner accountable for content,
+    delivery, and definition, with an agreed change-notice process?
+
 ## Step 2 — Choose the pattern recipe
 
 Assemble the recipe from `PIPELINE-PATTERNS.md`: one ingestion pattern + the
@@ -64,7 +90,18 @@ the history need.
 
 Tag each part of the recipe with an effort signal: **known** (built before,
 with actual timings), **known with caveats** (name the caveat — e.g. "the
-source sends no delivery receipt"), or **novel**.
+source sends no delivery receipt"), or **novel**. From each pattern's entry,
+note what it hands over and what it needs to start, and how it's validated —
+those become the stories' handovers and done criteria.
+
+**Build or buy the ingestion?** For a common SaaS or database source, compare
+a managed connector with a custom build over the pipeline's life, not the
+first build: schema changes, API versions, credential rotation, and rate
+limits are where a custom connector eats engineer-days every month. Buy when
+a managed connector covers the source and handles schema evolution; build
+when the source is bespoke, the managed option isn't production-supported for
+a critical pipeline, or its pricing at your volume is worse. Log the decision,
+with the maintenance estimate, in the decisions register.
 
 ## Step 3 — Apply the design rules
 
@@ -85,6 +122,19 @@ section of `ENGINEERING-STEPS.md`):
 * **Classified with the model** — classify columns and design access as you
   design the tables (`data-security-classification`, if installed), not after
   go-live.
+* **Meets its tier's obligations** — the tier comes from the spec; the
+  obligations are concrete:
+
+  | Tier | Alerting | Tests and gates | Freshness SLA (example) |
+  |---|---|---|---|
+  | 1 | Pages the on-call person | Unique + not-null on every key, WAP, named owner | Under 4 hours, breaches alerted |
+  | 2 | Team-channel alert | Core key tests, named owner | Under 12 hours |
+  | 3 | Weekly digest | Best effort | Under 24 hours |
+
+  Regulated data, at any tier, also needs an access audit trail, lineage from
+  source to report, and a deletion path built with the same rigour as the
+  ingestion (retention and erasure — see `data-security-classification`, if
+  installed).
 
 ## Step 4 — Stories, seams, and the estimate
 

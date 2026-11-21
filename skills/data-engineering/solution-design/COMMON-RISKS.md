@@ -26,6 +26,13 @@ risks beneath. Score each *Likelihood × Impact* (Low/Med/High).
   expectations that history begins at go-live.
 * **Late-arriving / backdated data** — rows arrive for a past period after it's
   closed. *Mitigate:* reprocessing window; as-of logic.
+* **Custom-connector maintenance** — a hand-built connector needs patching for
+  every schema, API-version, or credential change, long after the first
+  build. *Mitigate:* judge build vs buy on lifetime maintenance; use a managed
+  connector where one covers the source.
+* **Unanswered pre-mortem question** — one of the ten source questions has no
+  answer at design time. *Mitigate:* log it here with an owner; answer it
+  before the source goes to production.
 
 ## Modelling & quality
 
