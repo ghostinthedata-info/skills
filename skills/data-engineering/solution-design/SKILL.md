@@ -169,4 +169,5 @@ Fill `SOLUTION-DESIGN-TEMPLATE.md`:
    idempotent, rebuildable, validated on real history.
 
 Deliver in thin vertical slices. Don't accept ad-hoc scope changes mid-slice —
-route them through the decisions register instead.
+route them through the decisions register instead. When the design is agreed,
+offer to turn the stories into tickets with `to-tickets` (if installed).

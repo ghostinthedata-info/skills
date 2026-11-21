@@ -1,10 +1,23 @@
-# Explicit `/setup-ghost-skills` pointer only for hard dependencies
+# Explicit setup pointer only for hard dependencies
 
-Data Engineering skills depend on per-repo config (issue tracker, triage label vocabulary, domain doc layout) seeded by `/setup-ghost-skills`. Some skills cannot meaningfully function without that config — they have to publish to a specific issue tracker or apply a specific label string. Others only use it to sharpen output (vocabulary, ADR awareness) and degrade gracefully without it.
+The pack's skills read per-repo facts that `/setup-ghost-skills` writes to
+`docs/agents/`: the platform, the tooling, the issue tracker, the triage
+labels, and the domain-doc layout. A few skills can't produce correct output
+without those facts — they publish tickets to a particular tracker or apply a
+particular label, and a guess puts duplicates in the wrong place. The rest
+only use the facts to sharpen their output, and work without them.
 
-We split these into **hard-dependency** and **soft-dependency** skills:
+We treat the two kinds differently:
 
-- **Hard dependency** (`to-issues`, `to-prd`, `triage`) — include an explicit one-liner: _"… should have been provided to you — run `/setup-ghost-skills` if not."_ Without the mapping, output is wrong, not just fuzzy.
-- **Soft dependency** (`diagnose`, `tdd`, `improve-codebase-architecture`, `zoom-out`) — reference "the project's domain glossary" and "ADRs in the area you're touching" in vague prose only. If the docs aren't there, the skill still works; output is just less sharp.
+- **Hard dependency** — `to-tickets` and `triage`. Each carries one explicit
+  line: the tracker and labels "should be in `docs/agents/…` — run
+  `/setup-ghost-skills` if they're missing." Without the config their output
+  is wrong, not just less sharp.
+- **Soft dependency** — `diagnose`, `tdd`, `gather-requirements`,
+  `data-modelling`, `profile-data`, `test-data`, and the rest. They read
+  `docs/agents/*.md`, `CONTEXT.md`, and the ADRs when those exist, and carry
+  on when they don't. `gather-requirements` publishes its spec only if a
+  tracker is configured, so it stays soft.
 
-The split keeps soft-dependency skills token-light and avoids cargo-culting the setup pointer into places where it isn't load-bearing.
+No setup pointer where it isn't load-bearing: it costs tokens in every
+session, and it would make every skill depend on setup having run.

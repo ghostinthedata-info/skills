@@ -14,11 +14,11 @@ those when each pipeline is specced.
 
 | Fact | Written to | Read by |
 |---|---|---|
-| Platform and SQL dialect | `docs/agents/platform.md` | `profile-data`, `data-modelling`, `test-data`, `reconcile-data`, `performance-tuning` |
-| Transform and orchestration tooling | `docs/agents/tooling.md` | `test-data`, `reconcile-data`, `data-security-classification`, `performance-tuning` |
-| Issue tracker | `docs/agents/issue-tracker.md` | `gather-requirements` (publishes its spec), `data-incident-management` (logs incidents) |
-| Triage labels | `docs/agents/triage-labels.md` | `gather-requirements` (labels the spec) |
-| Domain-doc layout | `docs/agents/domain.md` | `gather-requirements` (writes the glossary and ADRs), `data-modelling`, `solution-design` |
+| Platform and SQL dialect | `docs/agents/platform.md` | `profile-data`, `data-modelling`, `test-data`, `reconcile-data`, `diagnose`, `tdd`, `performance-tuning` |
+| Transform and orchestration tooling | `docs/agents/tooling.md` | `test-data`, `reconcile-data`, `tdd`, `data-security-classification`, `performance-tuning` |
+| Issue tracker | `docs/agents/issue-tracker.md` | `to-tickets` and `triage` (required), `gather-requirements` (publishes its spec), `data-incident-management` (logs incidents) |
+| Triage labels | `docs/agents/triage-labels.md` | `triage` and `to-tickets` (required), `gather-requirements` (labels the spec) |
+| Domain-doc layout | `docs/agents/domain.md` | `gather-requirements` (writes the glossary and ADRs), `data-modelling`, `solution-design`, `to-tickets`, `triage`, `diagnose` |
 
 This is a conversation, not a script: look first, show what you found, confirm,
 then write.

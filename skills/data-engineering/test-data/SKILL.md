@@ -114,6 +114,8 @@ in development and CI and proves the pipeline and its checks behave:
   fix the bug, watch it pass — and keep the test.
 * Fabricated rows belong in these tests only; business validation runs on real
   history.
+* For building the transformation itself test-first — fixture rows in,
+  expected rows out — see `tdd` if installed.
 
 ## Deliver
 

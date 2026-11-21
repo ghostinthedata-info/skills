@@ -6,8 +6,9 @@
 Methodology and practice skills for AI coding agents — tuned for data
 engineering, from the [Ghost in the Data](https://ghostinthedata.info) blog.
 Focused on the durable, vendor-neutral parts of the data craft: profiling,
-requirements and solution design, dimensional modelling (keys, slowly
-changing dimensions, facts, backfills), testing, performance, incident
+requirements and solution design, tickets and triage, dimensional modelling
+(keys, slowly changing dimensions, facts, backfills), test-first
+transformations, testing and reconciliation, diagnosis, performance, incident
 management, and security classification.
 
 These skills are deliberately **tool-agnostic**. There is no Snowflake-only
@@ -88,15 +89,21 @@ fixes so your agent stops re-learning them every session.
 - **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — The *what* and *why*: value and consumers, grain, sources and their owners, metric definitions, freshness/volume SLAs, history needs, and acceptance criteria — one question at a time. Produces a one-page requirements spec, records terms in `CONTEXT.md` and hard-to-reverse decisions as ADRs, and can publish the spec to your issue tracker.
 - **[solution-design](skills/data-engineering/solution-design/SKILL.md)** — The *how* and *when*, starting from the requirements spec: source mechanics, a pattern recipe with an SVG overview, the design rules every load follows, day-sized stories with handovers and seams, an estimate, a decisions register, and risks.
 
+### Delivery
+- **[to-tickets](skills/data-engineering/to-tickets/SKILL.md)** — Turn a solution design's stories, or any agreed plan, into tracker tickets: day-sized slices with a done-when, a handover, what each needs to start, and blocking links, labelled for triage.
+- **[triage](skills/data-engineering/triage/SKILL.md)** — Sort incoming data work: route incidents and access requests, reproduce "this number looks wrong" with a query before labelling it, answer definition questions from the glossary, and move every ticket to one of five triage roles with a brief for whoever picks it up.
+
 ### Modeling
 - **[data-modelling](skills/data-engineering/data-modelling/SKILL.md)** — Entry point for analytics modelling, Kimball grain-first: profile, pin grain and history, then design facts (transaction / periodic / accumulating, additivity), dimensions and keys (surrogate, durable, conformed, the bus matrix), SCD types 0–7 with SCD1/SCD2 implementations, and deterministic Healing-Table backfills.
 
 ### Quality
+- **[tdd](skills/data-engineering/tdd/SKILL.md)** — Test-first transformations: fixture rows in, the exact rows the definition demands out, watch it fail, write the least SQL, then add the edge cases (NULLs, duplicates, late rows, boundaries, unmatched keys, re-runs). Shapes for dbt and SQLMesh unit tests, plain SQL, and pytest.
 - **[test-data](skills/data-engineering/test-data/SKILL.md)** — A test plan you can defend: what to test (uniqueness, referential integrity, nulls, accepted values, freshness, volume/variance), severity levels, and where tests live (Write-Audit-Publish).
 - **[reconcile-data](skills/data-engineering/reconcile-data/SKILL.md)** — Prove a changed model or a migrated table matches its source of truth: counts and key-set diffs, then per-column checksums, then a cell-by-cell diff, stopping at the first break — and graduate the keepers into permanent tests.
 - **[performance-tuning](skills/data-engineering/performance-tuning/SKILL.md)** — Measure first, find the critical path, then fix: partition pruning, incremental processing, avoiding full scans, killing phantom dependencies. A tool-agnostic method plus engine references for Oracle/SQL Server, cloud warehouses, and Spark (shuffles, skew, broadcast joins, caching).
 
 ### Operations
+- **[diagnose](skills/data-engineering/diagnose/SKILL.md)** — Find out why a number is wrong: pin the symptom, reproduce it with a query, bisect the lineage hop by hop to the transformation that breaks it, test one hypothesis at a time, fix the cause rather than the output, and leave a regression test.
 - **[data-incident-management](skills/data-engineering/data-incident-management/SKILL.md)** — Work a data or reporting incident end to end: classify severity (D1–D4), contain, notify on a set cadence with copy-paste emails, resolve, run a blameless post-incident review, and feed the fix back as a permanent test or monitor.
 - **[data-security-classification](skills/data-engineering/data-security-classification/SKILL.md)** — Classify every column by sensitivity and recommend the controls: the metadata to record with the model, masking or pseudonymisation, an RBAC role grid, encryption and auditing, retention and deletion, and controls on every copy. Runs after profiling and inside solution design.
 
@@ -104,8 +111,8 @@ fixes so your agent stops re-learning them every session.
 - **[de-feedback](skills/management/de-feedback/SKILL.md)** — Honest, empathetic feedback for data engineers at any level: set the expected level (SFIA-anchored), rate observed behaviour as underperform / meet / exceed across technical, delivery, collaboration, and leadership rubrics, write the narrative, and keep a running per-engineer log for growth conversations.
 
 ### Productivity
-- **[caveman](skills/productivity/caveman/SKILL.md)** — Ultra-compressed reply mode: drops filler and pleasantries but keeps full technical accuracy, for when you want fewer tokens.
-- **[write-a-skill](skills/productivity/write-a-skill/SKILL.md)** — Write a new agent skill with the right structure, progressive disclosure, bundled resources, and a description that triggers reliably.
+- **[caveman](skills/productivity/caveman/SKILL.md)** — Terse reply mode for data work: no filler, pleasantries or hedging, but every fact, number and identifier kept exact — and full sentences whenever something is destructive.
+- **[write-a-skill](skills/productivity/write-a-skill/SKILL.md)** — Write or rework a skill for this pack: pin the decision it owns, place and name it, write a description that triggers, keep SKILL.md short with reference files for depth, and register it until the governance checker passes.
 
 ### Setup
 - **[setup-ghost-skills](skills/setup/setup-ghost-skills/SKILL.md)** — Scaffold the per-repo config the other skills consume (warehouse/dialect, tooling, issue tracker, triage labels, domain-doc layout). Run once per repo.

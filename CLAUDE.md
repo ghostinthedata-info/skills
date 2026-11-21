@@ -4,8 +4,10 @@ This is the publisher repo for the **ghost-skills** pack. Skills are
 organized into bucket folders under `skills/`:
 
 * `data-engineering/` — the published data-engineering pack (profiling,
-  requirements and solution design, modelling — keys, SCDs, facts,
-  backfills — testing, performance, incidents, security classification)
+  requirements and solution design, tickets and triage, modelling — keys,
+  SCDs, facts, backfills — test-first transformations, testing and
+  reconciliation, diagnosis, performance, incidents, security
+  classification)
 * `management/`       — leading and developing data engineers (`de-feedback`)
 * `setup/`            — one-time per-repo configuration (`setup-ghost-skills`)
 * `productivity/`     — general-purpose authoring/comms skills
