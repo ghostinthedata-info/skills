@@ -16,11 +16,13 @@ engine's functions (consult `docs/agents/platform.md` if present) and replace
 SELECT COUNT(*) AS row_count FROM {{table}};
 SELECT {{partition_col}}, COUNT(*) FROM {{table}} GROUP BY {{partition_col}} ORDER BY 1;
 
--- declared schema; eyeball types + string caps
+-- declared schema; eyeball types, string caps, numeric precision
 -- (information_schema.columns, or DESCRIBE {{table}}, per engine)
-SELECT column_name, data_type, character_maximum_length
+SELECT column_name, data_type, character_maximum_length,
+       numeric_precision, numeric_scale
 FROM information_schema.columns
-WHERE table_name = '{{table}}';
+WHERE table_schema = '{{schema}}' AND table_name = '{{table}}'
+ORDER BY ordinal_position;
 
 -- truncation trap: real max length vs declared cap, per string column
 SELECT MAX(LENGTH({{col}})) AS observed_max_len FROM {{table}};
@@ -35,7 +37,15 @@ SELECT
   ROUND(COUNT(DISTINCT {{col}}) * 100.0 / NULLIF(COUNT(*), 0), 2) AS distinct_pct
 FROM {{table}};
 -- distinct_pct ~100 -> candidate key; ~0 -> constant/low-signal;
--- mid-range -> categorical (capture the value set for accepted-values tests)
+-- mid-range -> categorical (capture the value set for accepted-values tests).
+-- On large tables use your engine's approximate distinct count here, and an
+-- exact COUNT(DISTINCT ...) only on the columns that look like keys.
+
+-- capture a categorical value set (mid-range distinct_pct, non-PII only)
+SELECT {{col}}, COUNT(*) AS n
+FROM {{table}}
+GROUP BY {{col}}
+ORDER BY n DESC;
 ```
 
 ## 3. Key uniqueness (make-or-break)
@@ -72,6 +82,8 @@ SELECT
   SUM(CASE WHEN UPPER(TRIM({{col}})) IN ('N/A','NULL','-','NONE','UNKNOWN')
           THEN 1 ELSE 0 END)                        AS sentinel_count
 FROM {{table}};
+-- for date columns, also count placeholder dates:
+--   SUM(CASE WHEN {{date_col}} = DATE '1900-01-01' THEN 1 ELSE 0 END) AS zero_dates
 -- decide per column: is null expected, or a defect?
 ```
 
@@ -105,8 +117,18 @@ SELECT
   SUM(CASE WHEN {{col}} ~ '^[^@]+@[^@]+\.[^@]+$' THEN 1 ELSE 0 END) AS looks_like_email,
   SUM(CASE WHEN {{col}} ~ '^\+?[0-9 ()-]{7,}$'    THEN 1 ELSE 0 END) AS looks_like_phone
 FROM {{table}};
--- also confirm date formats, timezones, numeric precision match assumptions
+-- also confirm date formats and numeric precision match assumptions
+
+-- time-zone semantics: list the timestamp columns and their exact types
+-- (without a zone, with a zone, or session-local) before trusting any time
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = '{{schema}}' AND table_name = '{{table}}'
+  AND data_type LIKE 'TIMESTAMP%';
 ```
+
+> `~` is POSIX regex match in some engines; use your dialect's operator or
+> function (`RLIKE`, `REGEXP_LIKE`, `REGEXP_CONTAINS`, …).
 
 ---
 
@@ -129,10 +151,10 @@ Verdict: safe to build on  |  not yet (keys fail / anomalies)
 - Partitioned by: load_date (≈ 4,100 rows/day)
 
 ## Candidate keys
-| Key            | Unique? | Nullable? | Notes                       |
-|----------------|---------|-----------|-----------------------------|
-| order_id       | PASS    | no        | use as business key         |
-| (order_id, ln) | PASS    | no        | grain = one row per line     |
+| Key            | Unique? | Nullable? | Implied grain           |
+|----------------|---------|-----------|-------------------------|
+| order_id       | PASS    | no        | one row per order       |
+| (order_id, ln) | PASS    | no        | one row per order line  |
 
 ## Cardinality & completeness
 | Column     | Distinct% | Null% | Classification        |
@@ -152,10 +174,13 @@ Verdict: safe to build on  |  not yet (keys fail / anomalies)
 - 312 rows with order_total = 0 (refunds?) — confirm with business
 - email observed max length 254 vs declared VARCHAR(255) — near cap
 
-## Columns that need tests
-- order_id: uniqueness (error), not-null (error)
-- status: accepted_values (warn)
-- order_total: non-negative (error), volume/variance vs this baseline (warn)
+## Columns that need tests (hand to test-data)
+| Column      | DQ dimension   | Test                        | Severity |
+|-------------|----------------|-----------------------------|----------|
+| order_id    | Uniqueness     | unique, not null            | error    |
+| status      | Validity       | accepted values             | warn     |
+| order_total | Reasonableness | non-negative                | error    |
+| order_total | Consistency    | volume/variance vs baseline | warn     |
 ```
 
 This baseline is what `test-data` (if installed) turns into volume/variance

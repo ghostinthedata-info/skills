@@ -84,7 +84,7 @@ fixes so your agent stops re-learning them every session.
 ## Skill catalogue
 
 ### Discovery
-- **[profile-data](skills/data-engineering/profile-data/SKILL.md)** — Profile a new dataset before you build on it: row counts, cardinality, null/blank analysis, key-uniqueness, distributions, and an optional saved baseline for drift detection.
+- **[profile-data](skills/data-engineering/profile-data/SKILL.md)** — Profile a new dataset before you build on it: row counts, cardinality, null/blank analysis, key-uniqueness, distributions, and an optional saved baseline for drift detection. Hands the keys and grain to modelling and the tagged columns to testing.
 - **[gather-requirements](skills/data-engineering/gather-requirements/SKILL.md)** — The *what* and *why*: value and consumers, grain, sources and their owners, metric definitions, freshness/volume SLAs, history needs, and acceptance criteria — one question at a time. Produces a one-page requirements spec, records terms in `CONTEXT.md` and hard-to-reverse decisions as ADRs, and can publish the spec to your issue tracker.
 - **[solution-design](skills/data-engineering/solution-design/SKILL.md)** — The *how* and *when*, starting from the requirements spec: source mechanics, a pattern recipe with an SVG overview, the design rules every load follows, day-sized stories with handovers and seams, an estimate, a decisions register, and risks.
 
@@ -97,10 +97,10 @@ fixes so your agent stops re-learning them every session.
 
 ### Operations
 - **[data-incident-management](skills/data-engineering/data-incident-management/SKILL.md)** — Work a data or reporting incident end to end: classify severity (D1–D4), contain, notify on a set cadence with copy-paste emails, resolve, run a blameless post-incident review, and feed the fix back as a permanent test or monitor.
-- **[data-security-classification](skills/data-engineering/data-security-classification/SKILL.md)** — Classify data by sensitivity and apply the right controls (access, masking, encryption, auditing) driven by regulatory and confidentiality requirements. The four A's, PII/PHI, least privilege.
+- **[data-security-classification](skills/data-engineering/data-security-classification/SKILL.md)** — Classify every column by sensitivity and recommend the controls: the metadata to record with the model, masking or pseudonymisation, an RBAC role grid, encryption and auditing, retention and deletion, and controls on every copy. Runs after profiling and inside solution design.
 
 ### Management
-- **[de-feedback](skills/management/de-feedback/SKILL.md)** — Honest, empathetic feedback for data engineers at any level: set the expected level (SFIA-anchored), rate observed behaviour as underperform / meet / exceed across technical, delivery, collaboration, and leadership rubrics, and write the narrative.
+- **[de-feedback](skills/management/de-feedback/SKILL.md)** — Honest, empathetic feedback for data engineers at any level: set the expected level (SFIA-anchored), rate observed behaviour as underperform / meet / exceed across technical, delivery, collaboration, and leadership rubrics, write the narrative, and keep a running per-engineer log for growth conversations.
 
 ### Productivity
 - **[caveman](skills/productivity/caveman/SKILL.md)** — Ultra-compressed reply mode: drops filler and pleasantries but keeps full technical accuracy, for when you want fewer tokens.

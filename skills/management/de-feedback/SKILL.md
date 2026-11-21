@@ -1,6 +1,6 @@
 ---
 name: de-feedback
-description: Structured, honest, empathetic feedback for data engineers at any level (junior, mid, senior, principal/staff). Identifies the engineer's expected maturity level from their position, then scores observed performance against SFIA-anchored, industry-benchmarked behaviours across technical, delivery/ops, collaboration, and leadership themes — producing an underperform/meet/exceed rating per skill plus a written narrative. Use this whenever someone wants to evaluate, review, assess, coach, or give feedback to a data engineer (performance reviews, 1:1 coaching, interview/hiring assessment, calibration, promo cases, growth plans). Trigger even when the user just says "help me give feedback to my engineer," "assess this person," "is X performing at senior level," "write a review for," or pastes evidence about someone's work and wants it judged. Pulls in reference rubrics rather than improvising scores.
+description: Structured, honest, empathetic feedback for data engineers at any level (junior, mid, senior, staff/principal). Identifies the engineer's expected maturity level from their position, then scores observed performance against SFIA-anchored behaviours across technical, delivery/ops, collaboration, and leadership themes — producing an underperform/meet/exceed rating per skill plus a written narrative, and maintaining a running per-engineer feedback log that grows over time for growth conversations. Use whenever someone wants to evaluate, review, assess, appraise, coach, or give feedback to a data engineer, gauge what level they operate at, or set growth targets. Trigger when the user types /de-feedback or /feedback, or says "give feedback to my engineer," "assess this person," "is X performing at senior level," "what level is X," "write a review for," "log feedback for X," or pastes evidence about someone's work to be judged. Pulls in reference rubrics rather than improvising scores.
 ---
 
 # Data Engineer Feedback
@@ -78,6 +78,16 @@ Fill out `FEEDBACK-TEMPLATE.md` (copy it; don't edit the reference in place). It
 
 Save the finished artifact as a markdown file in the working/output directory and present it. If the user explicitly wants a Word doc to share formally, use the `docx` skill to convert.
 
+### Step 4b — Update the running per-engineer log
+
+Separate from the point-in-time report above, keep a **living log per engineer** — one file that grows over time, named `{EngineerName}-feedback.txt`. It's what you pull from in targeted growth conversations: the thread of what changed, and the specific examples behind each shift.
+
+- **Check first.** If the initiator already has a log for this person (they may upload it, or it may be in the working directory), read it: carry the header forward, update `Last updated`, and **add a new dated entry at the top** (newest first). Never overwrite past entries.
+- **If none exists,** copy `RUNNING-LOG-TEMPLATE.md` to `{EngineerName}-feedback.txt`, fill the header, and write the first entry.
+- **Keep entries lean.** Log only what *changed* since the last entry (rating shifts, or "held"), the concrete *example* behind each, movement on open growth threads, and the agreed next step. Don't re-paste the full matrix — that's what the report is for.
+- **Keep it private.** It's personal performance data: store it where the initiator keeps people records, never in a shared repo, a ticket, or a team channel.
+- Write it as plain-text-friendly markdown and present it alongside the report. The two are complementary: the report is the formal snapshot, the log is the ongoing record.
+
 ### Step 5 — Frame the delivery (Brené Brown)
 
 Honesty without empathy is cruelty; empathy without honesty is a disservice. Hold both. Apply these to the narrative and to how you advise the initiator to deliver it:
@@ -93,4 +103,4 @@ The matrix gives the *what*; this gives the *how*. A good artifact reads as some
 
 ## Output expectations
 
-A completed evaluation always includes: the expected level (with reasoning), the filled scoring matrix with evidence per skill, any "insufficient evidence" flags, a delivery-ready narrative, and a tight growth plan. Never output bare scores without evidence, and never rate a skill you have no evidence for.
+A completed evaluation always includes: the expected level (with reasoning), the filled scoring matrix with evidence per skill, any "insufficient evidence" flags, a delivery-ready narrative, a tight growth plan, and an updated running log (`{EngineerName}-feedback.txt`) with a new dated entry at the top. Never output bare scores without evidence, and never rate a skill you have no evidence for.
