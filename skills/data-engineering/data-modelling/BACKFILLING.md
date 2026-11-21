@@ -1,4 +1,4 @@
-# Backfilling and Healing SCD2 History (Snowflake)
+# Backfilling and Healing SCD2 History
 
 Use this to build an SCD2 dimension's history deterministically from full
 source. It isn't only for disaster recovery — three uses:
@@ -35,13 +35,13 @@ history; fix the logic, reprocess the range, and the dimension "heals."
 * **Acceptable rebuild time.** Otherwise stay incremental — also the right call
   for real-time, or when no history exists.
 
-## The six steps (Snowflake)
+## The six steps
 
 1. **Effectivity table** — extract every actual change point from source;
    filter out non-changes with null-safe comparison
    (`prev IS DISTINCT FROM curr`).
 2. **Time slices** — `LEAD()` over the change points to derive
-   `VALID_FROM`/`VALID_TO` (left-closed/right-open).
+   `valid_from`/`valid_to` (left-closed/right-open).
 3. **Join sources** — build a unified timeline; as-of join each source and
    **document attribute ownership** (which source wins per column).
 4. **Hash** — a key-hash for identity and a row-hash for change detection;
@@ -52,90 +52,103 @@ history; fix the logic, reprocess the range, and the dimension "heals."
    [SCD2.md](./SCD2.md) before publish.
 
 [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) has tool-agnostic
-pseudo-SQL for all six steps — swap in the Snowflake functions below.
+pseudo-SQL for all six steps. The building block below shows steps 1–2 for a
+single source with change timestamps.
 
-### Snowflake building blocks
+### Building block — change points to time slices
 
 ```sql
--- Step 1+2: change points → time slices
-WITH ranked AS (
-  SELECT CUSTOMER_BK, REGION, NAME, EFFECTIVE_TS,
-         LAG(REGION) OVER (PARTITION BY CUSTOMER_BK ORDER BY EFFECTIVE_TS) AS prev_region,
-         LAG(NAME)   OVER (PARTITION BY CUSTOMER_BK ORDER BY EFFECTIVE_TS) AS prev_name
-  FROM SRC_CUSTOMER_HISTORY
+WITH ordered AS (
+  SELECT customer_bk, region, customer_name, effective_ts, source_seq,
+         ROW_NUMBER()          OVER w AS version_no,
+         LAG(region)           OVER w AS prev_region,
+         LAG(customer_name)    OVER w AS prev_name
+  FROM src_customer_history
+  WINDOW w AS (PARTITION BY customer_bk ORDER BY effective_ts, source_seq)
+  -- source_seq (log position, ingest offset) breaks timestamp ties;
+  -- without it the order — and so the result — isn't deterministic
 ),
 changes AS (
-  SELECT * FROM ranked
-  WHERE prev_region IS DISTINCT FROM REGION
-     OR prev_name   IS DISTINCT FROM NAME
-     OR prev_region IS NULL                 -- first row per key
+  SELECT * FROM ordered
+  WHERE version_no = 1                              -- first appearance
+     OR prev_region IS DISTINCT FROM region
+     OR prev_name   IS DISTINCT FROM customer_name
 )
-SELECT CUSTOMER_BK, REGION, NAME,
-       EFFECTIVE_TS AS VALID_FROM,
+SELECT customer_bk, region, customer_name,
+       effective_ts AS valid_from,
        COALESCE(
-         LEAD(EFFECTIVE_TS) OVER (PARTITION BY CUSTOMER_BK ORDER BY EFFECTIVE_TS),
-         '9999-12-31'::TIMESTAMP_NTZ
-       ) AS VALID_TO
+         LEAD(effective_ts) OVER (PARTITION BY customer_bk ORDER BY effective_ts, source_seq),
+         TIMESTAMP '9999-12-31 00:00:00'
+       ) AS valid_to
 FROM changes;
 ```
 
-## Test harness — zero-copy clone
+`ROW_NUMBER() = 1` finds the first version; testing `prev_region IS NULL`
+instead also fires whenever the previous value was a real NULL. If your
+engine has no named `WINDOW` clause, repeat the `OVER (…)` in each column.
 
-Never rebuild a production HST table in place on the first attempt. Snowflake
-**zero-copy cloning** gives you a full-size, isolated copy in seconds at no
-storage cost until you diverge:
+## Test harness — rebuild into a copy, never in place
+
+Never rebuild a production history table in place on the first attempt.
+Rebuild into an isolated copy: a zero-copy clone or snapshot if your engine
+has one (Snowflake `CLONE`, BigQuery table clones, Delta `SHALLOW CLONE`),
+otherwise a full copy in a scratch schema:
 
 ```sql
-CREATE TABLE PROD_DB.HST.DIM_CUSTOMER_HST_BACKFILL_TEST
-  CLONE PROD_DB.HST.DIM_CUSTOMER_HST;
--- or clone the whole schema for a wider rehearsal:
-CREATE SCHEMA PROD_DB.HST_BACKFILL_TEST CLONE PROD_DB.HST;
+CREATE TABLE hst_backfill_test.dim_customer_hst AS
+SELECT * FROM hst.dim_customer_hst;      -- or your engine's clone/snapshot
 ```
 
-Rebuild into the clone, run the validation suite, diff against the live table,
-then swap (`ALTER TABLE ... SWAP WITH`) or re-point. Drop the clone when done.
+Rebuild into the copy, run the validation suite, diff against the live table,
+then publish with an atomic swap, rename, or view re-point. Drop the copy when
+done.
 
-## Two-step RAW → HST staging
+## Two-step staging — raw backfill table, then the published table
 
-Stage the rebuilt timeline in a RAW landing table first, validate it there,
-then promote to HST. This keeps a broken rebuild out of the published table
-and gives you an inspectable artifact:
+Stage the rebuilt timeline in a raw landing table first, validate it there,
+then promote it to the published history table. This keeps a broken rebuild
+out of the published table and gives you an inspectable artifact:
 
-1. `RAW.DIM_CUSTOMER_BACKFILL` — output of steps 1–5 run over the landed
+1. `raw.dim_customer_backfill` — output of steps 1–5 run over the landed
    history (below), untrusted.
-2. Run validation (step 6) against RAW.
-3. On pass, `INSERT`/`SWAP` into `HST.DIM_CUSTOMER_HST`.
+2. Run validation (step 6) against the raw table.
+3. On pass, replace `hst.dim_customer_hst` atomically (swap, rename, or view
+   re-point).
 
-## Partition-level loads with COPY INTO
+## Land large history by partition
 
 For large historical source in object storage, land the raw history in
-**month-level partitions** rather than one monolithic file — it bounds memory,
-makes failures re-runnable per partition, and parallelises:
+**month-level partitions** rather than one monolithic load — it bounds memory,
+makes failures re-runnable per partition, and parallelises. Use your engine's
+bulk loader (a `COPY`/`LOAD` command, an external table, or a Spark read),
+fail the partition on any rejected row, and make each partition's load
+replace that partition:
 
 ```sql
-COPY INTO RAW.CUSTOMER_HISTORY_LANDING
-FROM @HISTORY_STAGE/customer/history/year=2024/month=03/
-FILE_FORMAT = (TYPE = PARQUET)
-MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE
-ON_ERROR = ABORT_STATEMENT;
+-- one month at a time; re-running a month replaces it
+DELETE FROM raw.customer_history_landing WHERE fetch_month = '2024-03';
+INSERT INTO raw.customer_history_landing
+SELECT f.*, '2024-03' AS fetch_month
+FROM <files under customer/history/year=2024/month=03/> f;   -- your bulk loader
 ```
 
-Loop the months, check each landed partition's row counts against the
-profiling baseline, and keep the landing idempotent (truncate-and-reload the
-partition) so a re-run is safe.
+Loop the months and check each landed partition's row counts against the
+profiling baseline.
 
 **Partition the landing, not the logic.** Steps 1–5 read the landing table and
 run over each key's *whole* history in one pass. Windowing them by month cuts
 `LAG`/`LEAD` at every boundary: each month gets a fake first version and an
 open last one, so you get overlaps and several current rows. If the work must
 be split, split by business key, never by time. And if you dedupe the output,
-dedupe on (key-hash, `VALID_FROM`) — the key-hash alone is one row per entity,
+dedupe on (key-hash, `valid_from`) — the key-hash alone is one row per entity,
 so deduping on it deletes the history.
 
 ## Checklist
 
-* Rebuilt into a **zero-copy clone**, never live, on the first pass.
-* Staged through **RAW**, validated, then promoted to HST.
+* Rebuilt into a **copy** (clone, snapshot, or scratch table), never live, on
+  the first pass.
+* Staged through a **raw** table, validated, then promoted to the published
+  table atomically.
 * Raw history **landed** by partition (e.g. month) with per-partition
   row-count checks; steps 1–5 run over each key's full history, never per month.
 * Preconditions checked: complete history, deletes captured, gaps in presence

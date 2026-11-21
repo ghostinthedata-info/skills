@@ -1,15 +1,21 @@
 ---
 name: data-modelling
-description: Base orchestrator for designing analytics data models. Drives the Kimball grain-first workflow, profiling source data first, then routing to the right deep-dive — SCD1, SCD2, backfilling, and fact-table design. Use when the user is designing or refactoring dimensions, facts, a star schema, or a gold/presentation layer, or asks "how should I model this?". Always clarify grain and history requirements BEFORE emitting DDL.
+description: Base orchestrator for designing analytics data models, following the Kimball grain-first workflow — profile source data first, then route to the right deep-dive (keys, SCD types, SCD1, SCD2, backfilling and healing, fact-table design). Use this skill whenever the user is designing, building, or refactoring dimensions, facts, a star schema, a dimensional model, or a gold/presentation layer; whenever they mention dims, facts, grain, SCD/slowly-changing dimensions, surrogate keys, or history tracking; or when they ask "how should I model this?" — even if they don't explicitly say "data modelling". Always clarify grain and history requirements BEFORE emitting DDL.
 ---
 
-# Data Modeling
+# Data Modelling
 
-This is the **entry point** for any analytics modeling task. It does not do
+This is the **entry point** for any analytics modelling task. It does not do
 the deep work itself — it sequences the work and hands off to the reference
-files below. Emit Snowflake SQL unless `docs/agents/platform.md` says
-otherwise; SCD1, SCD2, BACKFILLING and FACT-TABLES use Snowflake syntax as
-worked examples, so translate them to the target dialect.
+files below.
+
+Write SQL for the engine named in `docs/agents/platform.md`. If that file
+doesn't exist, ask which engine once, or write portable SQL and mark the lines
+that are dialect-specific. The reference files are engine-agnostic: portable,
+ANSI-style SQL (standard types, `MERGE`, `IS DISTINCT FROM`, window
+functions), with engine features described by what they do ("a zero-copy
+clone, if your engine has one") rather than by product. Translate them to the
+target dialect; never let one engine's syntax become the default.
 
 Kimball's core move: **separate measurements (facts) from context
 (dimensions)**, declare the grain before anything else, and pick history
@@ -30,7 +36,8 @@ for nulls.
 
 A fuzzy grain is the #1 dimensional-design failure. Ask the questions in the
 **Clarifying questions** section below and wait for answers before emitting
-DDL. The most expensive modeling mistakes are committed silently at this step.
+DDL. The most expensive modelling mistakes are committed silently at this
+step.
 
 ### 1b. If the model already exists, refactor it — don't redesign it
 
@@ -73,12 +80,12 @@ lineage, and for SCD2 carry the **durable ("super-natural") key** that ties
 all versions of an entity together — and put that durable key on the fact too,
 so you can report all history by current attributes. See
 [KEYS.md](./KEYS.md) for the full decision rules, composite-key validation,
-and anti-patterns. Most warehouses (Snowflake included) don't enforce key
-uniqueness — **test** every key for unique + not-null.
+and anti-patterns. Most warehouses don't enforce key uniqueness — **test**
+every key for unique + not-null.
 
 For each dimension attribute, decide the SCD type with
 [SCD-TYPES.md](./SCD-TYPES.md) (the full 0–7 catalogue). For the two you'll
-reach for >90% of the time, use the Snowflake-specific references:
+reach for >90% of the time, use the implementation references:
 
 * [SCD1.md](./SCD1.md) — overwrite (Type 1).
 * [SCD2.md](./SCD2.md) — history rows (Type 2).
@@ -89,10 +96,9 @@ With full source history, build SCD2 deterministically — as a one-off
 backfill, as the main build for batch dimensions, or as a scheduled heal
 alongside daily incremental loads. See [BACKFILLING.md](./BACKFILLING.md) for
 the preconditions and the deterministic, rebuildable (Healing Tables)
-approach in Snowflake — zero-copy
-clone test harness, two-step RAW→HST staging, and partition-level loads — and
-[HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) for tool-agnostic
-pseudo-SQL of all six steps.
+approach — rebuild into a copy, stage before you publish, land history by
+partition — and [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) for
+tool-agnostic pseudo-SQL of all six steps.
 
 ## Clarifying questions (ask these before emitting DDL)
 
@@ -124,7 +130,7 @@ Ask only the ones not already answered by profiling or the user:
 | [DIMENSIONS.md](./DIMENSIONS.md) | Dimension design rules and techniques, conformed dimensions, bus matrix, aggregates. |
 | [KEYS.md](./KEYS.md) | Business/surrogate/composite/durable keys, naming, anti-patterns. |
 | [SCD-TYPES.md](./SCD-TYPES.md) | Choosing a history policy per attribute — SCD types 0–7. |
-| [SCD1.md](./SCD1.md) | Overwrite-in-place dimension attributes on Snowflake. |
+| [SCD1.md](./SCD1.md) | Overwrite-in-place dimension attributes. |
 | [SCD2.md](./SCD2.md) | History-tracking dimensions, effectivity intervals, validation. |
 | [BACKFILLING.md](./BACKFILLING.md) | Building, backfilling, or periodically healing SCD2 history deterministically; preconditions. |
 | [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) | Tool-agnostic pseudo-SQL for the six Healing-Table steps. |
@@ -140,6 +146,7 @@ Ask only the ones not already answered by profiling or the user:
 
 ## Output contract
 
-End every modeling task with: the **one-sentence grain** per table, the chosen **fact
-type** (or SCD type per attribute), candidate-key **uniqueness verdict**, and
-a Snowflake **DDL skeleton**. Use naming from `CONTEXT.md` if present.
+End every modelling task with: the **one-sentence grain** per table, the
+chosen **fact type** (or SCD type per attribute), candidate-key **uniqueness
+verdict**, and a **DDL skeleton** in the target dialect. Use naming from
+`CONTEXT.md` if present.

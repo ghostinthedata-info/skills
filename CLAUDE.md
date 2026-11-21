@@ -20,8 +20,12 @@ Each skill entry in the top-level `README.md` must link the skill name to
 its `SKILL.md`. A skill's folder name must equal the `name` in its
 `SKILL.md` frontmatter (the Agent Skills spec requires it).
 
-Skills are purely methodological — no vendor-specific SQL or product
-features in the core buckets. Cross-skill references must be **soft
+Skills are methodological and engine-agnostic: write portable SQL, describe
+engine features by what they do ("a zero-copy clone, if your engine has
+one"), and never make one vendor's syntax the default. Where a subject is
+genuinely engine-specific (performance tuning), keep a tool-agnostic spine in
+`SKILL.md` and put engine detail in optional per-engine reference files.
+Cross-skill references must be **soft
 references** (see `CONTEXT.md` for the definition); every skill must remain
 self-sufficient for its core decision. The setup-pointer convention is
 recorded in `docs/adr/0001-explicit-setup-pointer-only-for-hard-dependencies.md`.

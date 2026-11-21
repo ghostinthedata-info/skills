@@ -16,7 +16,8 @@ Replace every `{{ ... }}` placeholder:
 - `{{tracked_cols}}` — the descriptive columns whose change you want to capture
 - `{{tracked_cols_concat_or_hash}}` — one comparable value over `{{tracked_cols}}`
   (a null-safe concatenation or the row hash from Step 4)
-- `{{high_date}}` — your "open interval" sentinel, e.g. `DATE '9999-12-31'`
+- `{{high_date}}` — your "open interval" sentinel, e.g. `TIMESTAMP '9999-12-31 00:00:00'`
+- `{{hash_fn}}` — your engine's hash function (`MD5`, `SHA2`, `SHA256`, `HASHBYTES`, …)
 
 ---
 
@@ -112,12 +113,12 @@ collide.
 ```sql
 SELECT
   *,
-  {{hash_fn}}(CAST({{durable_key}} AS STRING))      AS dim_key_hash,
+  {{hash_fn}}(CAST({{durable_key}} AS VARCHAR))     AS dim_key_hash,
   {{hash_fn}}(
     CONCAT_WS('||',
-      COALESCE(CAST(col_1 AS STRING), '^^'),
-      COALESCE(CAST(col_2 AS STRING), '^^'),
-      COALESCE(CAST(col_3 AS STRING), '^^')
+      COALESCE(CAST(col_1 AS VARCHAR), '^^'),
+      COALESCE(CAST(col_2 AS VARCHAR), '^^'),
+      COALESCE(CAST(col_3 AS VARCHAR), '^^')
     )
   )                                                 AS row_hash
 FROM joined_timeline
@@ -161,7 +162,7 @@ SELECT
   row_hash,
   MIN(valid_from)                                   AS valid_from,
   MAX(valid_to)                                     AS valid_to,
-  BOOL_OR(is_current)                               AS is_current
+  MAX(CASE WHEN is_current THEN 1 ELSE 0 END) = 1   AS is_current
 FROM islands
 GROUP BY dim_key_hash, {{durable_key}}, {{tracked_cols}}, row_hash, island_id
 ```
