@@ -1,15 +1,17 @@
-# Triage Labels
+# Triage labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
+The pack's skills talk about five triage **roles**. This file maps each role to
+the label your tracker actually uses, so skills apply your labels instead of
+inventing new ones.
 
-| Label in mattpocock/skills | Label in our tracker | Meaning                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `needs-triage`             | `needs-triage`       | Maintainer needs to evaluate this issue  |
-| `needs-info`               | `needs-info`         | Waiting on reporter for more information |
-| `ready-for-agent`          | `ready-for-agent`    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
-| `wontfix`                  | `wontfix`            | Will not be actioned                     |
+| Role (what a skill asks for) | Your label | Use it when |
+|---|---|---|
+| needs evaluation | `needs-triage` | It's new and nobody has assessed it yet |
+| waiting on the reporter | `needs-info` | It can't move until someone answers a question |
+| ready for an agent | `ready-for-agent` | It's specified well enough that an agent can finish it with no further conversation |
+| ready for a person | `ready-for-human` | It needs human judgement, access an agent doesn't have, or a conversation with someone |
+| won't do | `wontfix` | It's been decided against, with the reason written on the ticket |
 
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
-
-Edit the right-hand column to match whatever vocabulary you actually use.
+Change the middle column to whatever your tracker already uses (`bug:triage`,
+`status/blocked`, …). Skills ask for the role in the first column and apply
+the label in the second.

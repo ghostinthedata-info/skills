@@ -66,6 +66,7 @@ RETIRED_SKILLS = {
     "refine-context": "gather-requirements",
     "slowly-changing-dimensions": "data-modelling (SCD-TYPES.md)",
     "spark-performance": "performance-tuning (SPARK.md)",
+    "teach": None,
 }
 
 # Skills from other packs that ours may name, e.g. "use the `docx` skill".

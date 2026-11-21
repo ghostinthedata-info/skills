@@ -1,51 +1,54 @@
-# Domain Docs
+# Domain docs
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+Where this repo keeps its shared vocabulary and its decisions, and how the
+pack's skills use them.
 
-## Before exploring, read these
+## Layout
 
-- **`CONTEXT.md`** at the repo root, or
-- **`CONTEXT-MAP.md`** at the repo root if it exists — it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`** — read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+*Keep the layout that applies and delete the other.*
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The producer skill (`gather-requirements`) creates them lazily when terms or decisions actually get resolved.
-
-## File structure
-
-Single-context repo (most repos):
+**Single context** — most repos:
 
 ```
 /
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
+├── CONTEXT.md        ← the glossary: each term, what it means here, words to avoid
+└── docs/adr/         ← one file per hard-to-reverse decision, numbered in order
+    ├── 0001-<slug>.md
+    └── 0002-<slug>.md
 ```
 
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
+**Several contexts** — a `CONTEXT-MAP.md` at the root lists each context and
+where its own `CONTEXT.md` and `docs/adr/` live. Decisions that span contexts
+stay in the root `docs/adr/`.
 
 ```
 /
 ├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
+├── docs/adr/                    ← decisions that span contexts
+└── domains/
+    ├── sales/
     │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
+    │   └── docs/adr/
+    └── finance/
         ├── CONTEXT.md
         └── docs/adr/
 ```
 
-## Use the glossary's vocabulary
+## Before working in an area
 
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+Read the glossary for the area (via `CONTEXT-MAP.md` if there is one) and the
+ADRs whose titles touch it. If the files don't exist yet, carry on: they're
+created as terms and decisions get settled — `gather-requirements` writes
+them — not up front.
 
-If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `gather-requirements`).
+## While working
 
-## Flag ADR conflicts
-
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
-
-> _Contradicts ADR-0007 (event-sourced orders) — but worth reopening because…_
+* **Use the glossary's words** — in ticket titles, model and column names,
+  test names, and specs. If a word the glossary says to avoid creeps in, swap
+  it.
+* **A term you need isn't there?** Either you're inventing vocabulary (use the
+  existing word) or the glossary has a gap — note it for the next
+  `gather-requirements` session.
+* **Contradicting an ADR?** Say so plainly — "this goes against ADR-0004
+  (event time, not load time), because …" — and let the user decide whether
+  to reopen it. Never override one quietly.

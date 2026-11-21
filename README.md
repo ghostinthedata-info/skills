@@ -105,7 +105,6 @@ fixes so your agent stops re-learning them every session.
 
 ### Productivity
 - **[caveman](skills/productivity/caveman/SKILL.md)** — Ultra-compressed reply mode: drops filler and pleasantries but keeps full technical accuracy, for when you want fewer tokens.
-- **[teach](skills/productivity/teach/SKILL.md)** — Turn the workspace into a tutor that runs over many sessions: a mission, lessons, reference sheets, a glossary, and learning records that track what you've actually learned.
 - **[write-a-skill](skills/productivity/write-a-skill/SKILL.md)** — Write a new agent skill with the right structure, progressive disclosure, bundled resources, and a description that triggers reliably.
 
 ### Setup

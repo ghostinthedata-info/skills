@@ -1,47 +1,55 @@
-# ADR Format
+# ADR format
 
-ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
+An ADR records one decision that's expensive to undo, so the next engineer
+knows it was deliberate and doesn't "fix" it. ADRs live in `docs/adr/`,
+numbered in order — `0001-<slug>.md`, `0002-<slug>.md` (take the highest
+number there and add one). Create the folder with the first ADR.
 
-Create the `docs/adr/` directory lazily — only when the first ADR is needed.
+## When a decision earns one
 
-## Template
+Write an ADR only when all three hold:
+
+1. **Undoing it would cost real work** — a rebuild, a migration, re-agreeing
+   things with consumers.
+2. **A reader would otherwise wonder why**, or assume the opposite.
+3. **There was a real alternative**, and you chose against it for a reason.
+
+Easy to reverse, obvious, or forced? Skip it.
+
+Decisions that usually qualify in data work:
+
+* Event time or load time — for partitions, for validity intervals.
+* The grain of a core fact table, or splitting two grains apart.
+* Which system is the source of truth for an attribute.
+* Full rebuild or incremental, and how often a heal runs.
+* Keeping history for an attribute (Type 2) — or deciding not to.
+* A deliberate departure from the pack's defaults ("this fact appends without
+  replacing partitions, because …").
+* A constraint the code can't show: a retention law, a contractual SLA, a
+  vendor's rate limit.
+
+## The shape
+
+Short is the point. Most ADRs are a title and one paragraph:
 
 ```md
-# {Short title of the decision}
+# Partition order facts by event date, not load date
 
-{1-3 sentences: what's the context, what did we decide, and why.}
+Orders from the marketplace feed arrive up to ten days late, and month-end
+totals must not move when the feed catches up, so late orders land in the
+period they happened. Load-date partitions would be simpler to backfill but
+would put late orders in the wrong month. Agreed 2026-03-02 with the finance
+data owner.
 ```
 
-That's it. An ADR can be a single paragraph. The value is in recording *that* a decision was made and *why* — not in filling out sections.
+Add a section only when it earns its place:
 
-## Optional sections
+* **Status** — `accepted`, `superseded by 0007`, … once decisions start being
+  revisited.
+* **Options considered** — when the rejected option is likely to be suggested
+  again.
+* **Consequences** — when the knock-on effects aren't obvious (a backfill, a
+  consumer change, a new test).
 
-Only include these when they add genuine value. Most ADRs won't need them.
-
-- **Status** frontmatter (`proposed | accepted | deprecated | superseded by ADR-NNNN`) — useful when decisions are revisited
-- **Considered Options** — only when the rejected alternatives are worth remembering
-- **Consequences** — only when non-obvious downstream effects need to be called out
-
-## Numbering
-
-Scan `docs/adr/` for the highest existing number and increment by one.
-
-## When to offer an ADR
-
-All three of these must be true:
-
-1. **Hard to reverse** — the cost of changing your mind later is meaningful
-2. **Surprising without context** — a future reader will look at the code and wonder "why on earth did they do it this way?"
-3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
-
-If a decision is easy to reverse, skip it — you'll just reverse it. If it's not surprising, nobody will wonder why. If there was no real alternative, there's nothing to record beyond "we did the obvious thing."
-
-### What qualifies
-
-- **Architectural shape.** "We're using a monorepo." "The write model is event-sourced, the read model is projected into Postgres."
-- **Integration patterns between contexts.** "Ordering and Billing communicate via domain events, not synchronous HTTP."
-- **Technology choices that carry lock-in.** Database, message bus, auth provider, deployment target. Not every library — just the ones that would take a quarter to swap out.
-- **Boundary and scope decisions.** "Customer data is owned by the Customer context; other contexts reference it by ID only." The explicit no-s are as valuable as the yes-s.
-- **Deliberate deviations from the obvious path.** "We're using manual SQL instead of an ORM because X." Anything where a reasonable reader would assume the opposite. These stop the next engineer from "fixing" something that was deliberate.
-- **Constraints not visible in the code.** "We can't use AWS because of compliance requirements." "Response times must be under 200ms because of the partner API contract."
-- **Rejected alternatives when the rejection is non-obvious.** If you considered GraphQL and picked REST for subtle reasons, record it — otherwise someone will suggest GraphQL again in six months.
+Don't edit a superseded decision. Write a new ADR that supersedes it, and set
+the old one's status to point at the new one.

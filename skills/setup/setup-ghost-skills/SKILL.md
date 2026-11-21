@@ -1,122 +1,90 @@
 ---
 name: setup-ghost-skills
-description: Sets up an `## Agent skills` block in AGENTS.md/CLAUDE.md and `docs/agents/` so the ghost-skills pack knows this repo's warehouse platform & SQL dialect, transform/orchestration tooling, issue tracker (GitHub or local markdown), triage label vocabulary and domain-doc layout. Run before first use of profile-data, test-data, performance-tuning, data-modelling, or data-incident-management — or if those skills appear to be missing context about the platform, tooling, or domain docs.
+description: One-time setup that records this repo's facts for the ghost-skills pack — warehouse platform and SQL dialect, transform and orchestration tooling, where issues are tracked (GitHub, GitLab, local markdown, or another tracker), the triage label vocabulary, and the domain-doc layout — as an "## Agent skills" block in CLAUDE.md or AGENTS.md plus files in docs/agents/. Run it before first using the pack in a repo, or when a skill seems to be missing the platform, tooling, tracker, labels, or domain docs.
 disable-model-invocation: true
 ---
 
 # Setup Ghost Skills
 
-Scaffold the per-repo configuration the data engineering skills assume (repo-level
-facts only — SLAs and freshness vary per pipeline/source system and are
-captured by `gather-requirements`, not here):
+The pack's skills read a handful of repo-level facts instead of asking for
+them every session. This skill finds out what it can, asks for the rest, and
+writes them down once. It records only facts that hold for the whole repo —
+SLAs and freshness differ per pipeline, so `gather-requirements` captures
+those when each pipeline is specced.
 
-* **Platform & dialect** — which data warehouse or engine and SQL dialect to write for
-* **Tooling** — which transform/orchestration tools are in play
-* **Issue tracker** — where issues live (GitHub by default; local markdown is also supported out of the box)
-* **Triage labels** — the strings used for the five canonical triage roles
-* **Domain docs** — where `CONTEXT.md` and ADRs live
+| Fact | Written to | Read by |
+|---|---|---|
+| Platform and SQL dialect | `docs/agents/platform.md` | `profile-data`, `data-modelling`, `test-data`, `reconcile-data`, `performance-tuning` |
+| Transform and orchestration tooling | `docs/agents/tooling.md` | `test-data`, `reconcile-data`, `data-security-classification`, `performance-tuning` |
+| Issue tracker | `docs/agents/issue-tracker.md` | `gather-requirements` (publishes its spec), `data-incident-management` (logs incidents) |
+| Triage labels | `docs/agents/triage-labels.md` | `gather-requirements` (labels the spec) |
+| Domain-doc layout | `docs/agents/domain.md` | `gather-requirements` (writes the glossary and ADRs), `data-modelling`, `solution-design` |
 
+This is a conversation, not a script: look first, show what you found, confirm,
+then write.
 
-This is a prompt-driven skill, not a deterministic script. Explore, present
-what you found, confirm with the user, then write.
+## 1. Look before asking
 
-## Process
+Read what's there; don't assume.
 
-### 1. Explore
+* `git remote -v` — the host (GitHub, GitLab, self-hosted) and the repo name.
+* `CLAUDE.md` and `AGENTS.md` at the root — which exists, and whether either
+  already has an `## Agent skills` block.
+* `CONTEXT.md`, `CONTEXT-MAP.md`, and any `docs/adr/` folders.
+* Tooling clues: `dbt_project.yml`, `profiles.yml`, SQLMesh or Dagster
+  config, an Airflow `dags/` folder, the dialect of existing `*.sql`.
+* `docs/agents/` — the output of an earlier run.
+* `.scratch/` — a sign that local-markdown tickets are already in use.
 
-Read whatever exists; don't assume.
+## 2. Ask the five questions, one at a time
 
-* `git remote -v` — host and repo name.
-* `AGENTS.md` and `CLAUDE.md` at the root — does either exist? Already an
-  `## Agent skills` section?
-* `CONTEXT.md` and `CONTEXT-MAP.md` at the root.
-* `docs/adr/`, `src/*/docs/adr/` directories.
-* `dbt_project.yml`, `profiles.yml`, `*.sql`, `dags/`, `dagster.yaml` —
-  infer the platform/tooling if you can.
-* docs/agents/ — does this skill's prior output already exist?
-* .scratch/ — sign that a local-markdown issue tracker convention is already in use
+For each, say in one line why the skills need it, offer what you found as the
+recommended answer, and wait for the reply. The user may not know the terms —
+explain rather than quiz.
 
-### 2. Present findings and ask
+**A. Platform and SQL dialect.** Skills that write SQL need the engine, so they
+use functions it has and features it supports: Snowflake, BigQuery, Databricks
+/ Spark SQL, Redshift, Postgres, SQL Server, Oracle, Teradata, MySQL, or
+another (one line).
 
-Summarise what's present and missing. Then walk the user through the five
-decisions below **one at a time** — present a section, get the answer, then
-move on. Don't dump them all at once. Assume the user may not know the terms;
-start each section with a one-line explainer.
+**B. Transform and orchestration tooling.** Skills emit artefacts in your
+tools' shapes — models and tests, DAG tasks, assets — and read run history
+from them: dbt, SQLMesh, Dagster, Airflow, plain SQL, or another. More than one
+is normal (dbt with Airflow).
 
-**Section A — Platform & SQL dialect.**
-> Explainer: Skills like `profile-data`, `test-data`, and
-> `performance-tuning` emit SQL and pick optimisation patterns. They need to
-> know your engine so they use the right functions and don't suggest
-> features your platform lacks.
+**C. Issue tracker.** Where this repo's work is tracked, so skills that publish
+or read tickets do it in the right place. Propose what the remote suggests —
+GitHub (via `gh`) or GitLab (via `glab`) — or local markdown under `.scratch/`
+for a solo repo or one with no remote. For anything else (Jira, Linear, …),
+ask for a paragraph on how tickets are created, read, labelled, and closed,
+and record that.
 
-Offer: Snowflake / BigQuery / Databricks / Redshift / Postgres / (Spark SQL) / Teradata / MSSQL / Oracle / MySQL
-Other (describe in one line). Default: infer from the repo if obvious, else
-ask.
+**D. Triage labels.** Skills move tickets through five roles — needs
+evaluation, waiting on the reporter, ready for an agent, ready for a person,
+won't do — and need *your* label for each, or they'll create duplicates. The
+defaults are `needs-triage`, `needs-info`, `ready-for-agent`,
+`ready-for-human`, `wontfix`; ask whether the tracker already uses different
+strings.
 
-**Section B — Transform & orchestration tooling.**
-> Explainer: The skills need to know what artifacts to emit — dbt models and
-> schema tests, Airflow DAG tasks, Dagster assets, or plain SQL scripts —
-> and where your run metadata lives for performance measurement.
+**E. Domain docs.** Where the glossary and decisions live: one `CONTEXT.md` and
+`docs/adr/` at the root (most repos), or a `CONTEXT-MAP.md` pointing to a
+`CONTEXT.md` per area.
 
-Offer: dbt / Airflow / Dagster / SQLMesh / plain SQL / Other (describe).
-Multiple selections are fine (e.g. dbt + Airflow). Default: infer from the
-repo if obvious, else ask.
+## 3. Show the drafts
 
-**Section C — Issue tracker.**
+Draft the `## Agent skills` block and each `docs/agents/` file, and let the user
+edit them before anything is written. Start from the seed files in this folder:
 
-> Explainer: The "issue tracker" is where issues live for this repo. In this pack,
-> `data-incident-management` logs incidents there; issue, PRD and triage skills from
-> other packs read from and write to it too. They need to know whether to call
-> `gh issue create`, write a markdown file under .scratch/, or follow some other
-> workflow you describe. Pick the place you actually track work for this repo.
+* [issue-tracker-github.md](./issue-tracker-github.md),
+  [issue-tracker-gitlab.md](./issue-tracker-gitlab.md), or
+  [issue-tracker-local.md](./issue-tracker-local.md) — whichever matches the
+  tracker
+* [triage-labels.md](./triage-labels.md) — the label mapping
+* [domain.md](./domain.md) — the layout, and how skills use it
 
-Default posture: these skills were designed for GitHub. If a git remote points at GitHub, propose that. If a git remote points at GitLab (gitlab.com or a self-hosted host), propose GitLab. Otherwise (or if the user prefers), offer:
-
-- **GitHub** — issues live in the repo's GitHub Issues (uses the `gh` CLI)
-- **GitLab** — issues live in the repo's GitLab Issues (uses the [`glab`](https://gitlab.com/gitlab-org/cli) CLI)
-- **Local markdown** — issues live as files under `.scratch/<feature>/` in this repo (good for solo projects or repos without a remote)
-- **Other** (Jira, Linear, etc.) — ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
-
-
-**Section D — Triage label vocabulary.**
-
-> Explainer: When a triage skill (none ships in this pack; you may have one installed from another pack) processes an incoming issue, it moves it through a state machine — needs evaluation, waiting on reporter, ready for an AFK agent to pick up, ready for a human, or won't fix. To do that, it needs to apply labels (or the equivalent in your issue tracker) that match strings *you've actually configured*. If your repo already uses different label names (e.g. `bug:triage` instead of `needs-triage`), map them here so the skill applies the right ones instead of creating duplicates.
-
-The five canonical roles:
-
-- `needs-triage` — maintainer needs to evaluate
-- `needs-info` — waiting on reporter
-- `ready-for-agent` — fully specified, AFK-ready (an agent can pick it up with no human context)
-- `ready-for-human` — needs human implementation
-- `wontfix` — will not be actioned
-
-Default: each role's string equals its name. Ask the user if they want to override any. If their issue tracker has no existing labels, the defaults are fine.
-
-**Section E — Domain docs.**
-> Explainer: `gather-requirements` and `data-modelling` read `CONTEXT.md` for
-> the project's ubiquitous language and `docs/adr/` for past decisions. They
-> need to know whether you have one global context or several.
-
-Offer: Single-context (one `CONTEXT.md` + `docs/adr/` at root — most repos)
-or Multi-context (`CONTEXT-MAP.md` pointing to per-domain `CONTEXT.md`).
-
-### 3. Confirm and edit
-
-Show a draft of the `## Agent skills` block and of the docs files it will
-seed — `docs/agents/platform.md`, `docs/agents/tooling.md`,
-`docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md`, and
-`docs/agents/domain.md`. Let the user edit before writing.
-
-### 4. Write — pick the file to edit
-
-* If `CLAUDE.md` exists, edit it.
-* Else if `AGENTS.md` exists, edit it.
-* If neither exists, **ask the user which one to create — don't pick for
-  them.**
-* **Never** create `AGENTS.md` when `CLAUDE.md` already exists (or vice
-  versa) — always edit the one that's already there.
-* If an `## Agent skills` block already exists, update it in place rather
-  than appending a duplicate. Don't overwrite the user's surrounding edits.
+`platform.md` and `tooling.md` have no seed; keep them short — the engine and
+dialect (and version, where it matters); the tools, what each is used for,
+and where run history lives.
 
 The block:
 
@@ -124,38 +92,36 @@ The block:
 ## Agent skills
 
 ### Platform
-[one-line: engine + dialect]. See `docs/agents/platform.md`.
+<engine and dialect, one line>. See `docs/agents/platform.md`.
 
 ### Tooling
-[one-line: transform + orchestration tools]. See `docs/agents/tooling.md`.
+<transform and orchestration tools, one line>. See `docs/agents/tooling.md`.
 
 ### Issue tracker
-
-[one-line summary of where issues are tracked]. See `docs/agents/issue-tracker.md`.
+<where tickets live, one line>. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
-
-[one-line summary of the label vocabulary]. See `docs/agents/triage-labels.md`.
+<the defaults, or what's mapped>. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
-[one-line: single-context or multi-context]. See `docs/agents/domain.md`.
-
+<single context, or several>. See `docs/agents/domain.md`.
 ```
 
-Then write the docs files using the seed templates in this skill folder as a starting point:
+## 4. Write
 
-- [issue-tracker-github.md](./issue-tracker-github.md) — GitHub issue tracker
-- [issue-tracker-gitlab.md](./issue-tracker-gitlab.md) — GitLab issue tracker
-- [issue-tracker-local.md](./issue-tracker-local.md) — local-markdown issue tracker
-- [triage-labels.md](./triage-labels.md) — label mapping
-- [domain.md](./domain.md) — domain doc consumer rules + layout
+* Put the block in whichever of `CLAUDE.md` and `AGENTS.md` already exists —
+  `CLAUDE.md` if both do.
+* If neither exists, ask which to create. Never create one when the other is
+  already there.
+* If an `## Agent skills` block exists, update it in place and leave the rest
+  of the file alone.
+* Write the `docs/agents/` files.
 
-### 5. Done
+## 5. Finish
 
-Tell the user setup is complete and which skills now read these files. They
-can edit `docs/agents/*.md` directly later; only re-run this skill to switch
-platforms or reset. Note: per-pipeline SLAs are captured by
-`gather-requirements` (or `solution-design`) when each pipeline is specced,
-and `data-incident-management` records the team's incident specifics
-(distribution list, where incidents are logged, any severity-cadence changes)
-in `docs/agents/incident.md` on first use.
+Tell the user what was written and which skills read each file (the table at
+the top). From now on they can edit `docs/agents/*.md` by hand; re-run this
+skill only to change platform or tracker, or to start over. Per-pipeline SLAs
+are captured by `gather-requirements` when each pipeline is specced, and
+`data-incident-management` records the team's incident specifics in
+`docs/agents/incident.md` the first time it runs.
