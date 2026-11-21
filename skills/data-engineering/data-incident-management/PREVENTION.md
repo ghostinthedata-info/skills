@@ -40,6 +40,12 @@ For each PIR action, decide which lever it pulls:
    anomalies, schema drift, and validation failures.
 2. **Prevent entirely** — tests, validation, contracts, and constraints that stop
    the bad state from being produced (regression test, schema check, idempotency).
+   For logic changes, **diff the values against production before merging**: a
+   value-level comparison of the changed model against the current one — in CI
+   if you can — shows every row and column the change moves. A refactor that
+   should change nothing shows an empty diff; one that quietly shifts 3% of one
+   market's records shows exactly which (`reconcile-data`'s validate-a-change
+   mode, if installed).
 3. **Respond faster** — runbook entries, clear ownership, pre-written reprocessing
    steps so the next occurrence is routine, not a scramble.
 
@@ -64,7 +70,15 @@ For each PIR action, decide which lever it pulls:
 - **MTTR** (mean time to resolve) — is response getting faster?
 - **Recurrence rate** — are closed incidents staying closed?
 - **% incidents detected by monitor vs by stakeholder** — should trend toward
-  monitors.
+  monitors. Record on every incident who surfaced it: a monitor, the data team
+  itself, or a stakeholder.
+
+**A falling incident count isn't proof of health.** It can mean problems stopped
+being reported. Teams that are safe to speak up surface *more* problems, and
+surface them earlier — the better hospital units in Amy Edmondson's research
+reported more medication errors, not fewer. Read the count alongside who
+surfaced each incident: the share found by monitors and by the team should
+rise, and the share found by stakeholders should fall.
 
 If an incident recurs, the loop failed somewhere — re-open the prevention action,
 don't just re-fix the symptom.

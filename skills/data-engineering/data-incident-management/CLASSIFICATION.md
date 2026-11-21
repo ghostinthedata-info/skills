@@ -66,7 +66,7 @@ deserves a review even though the tier alone wouldn't require one.
 |---|---|---|---|---|
 | Initial notification | T+30 min, all groups | T+1 hr, business | T+2 hrs, business | Log only |
 | Status updates | Every 2 hrs until resolved | As needed | — | — |
-| Roles (Lead/Comms/Liaison) | Always separated | Always separated | May be one person | May be one person |
+| Roles (incident / comms / technical lead) | Always separated | Always separated | May be one person | May be one person |
 | Executive awareness | Always | At Lead's discretion | No | No |
 | Resolution notification | Yes | Yes | Yes | Only if impacted/enquired |
 | Post-incident review | Yes, ≤2 business days | Yes, ≤2 business days | Only if recurring | No |

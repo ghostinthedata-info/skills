@@ -41,6 +41,7 @@ Fill this out, then use it to (a) draft the 6.4 Executive Summary if D1/D2 and
 | | [Resolution notification sent] |
 
 **Detection method:** [automated monitor / alert / stakeholder reported]
+**Surfaced by:** [the monitor's name, the data team, or the stakeholder's role — tracked over time in `PREVENTION.md`'s metrics]
 *(If stakeholder-reported, prevention should include a monitor so we catch it first.)*
 
 ## 4. Root cause analysis (5 Whys)

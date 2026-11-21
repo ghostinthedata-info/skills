@@ -67,6 +67,39 @@ the spine; the supporting files do the heavy lifting:
    in writing before you start fixing it, at every severity. "I'll tell them
    when it's fixed" is the failure mode — the silence becomes the story.
 
+## Roles
+
+Three jobs run through every incident. For D1/D2 three different people hold
+them; for D3/D4 one person may hold all three — but still do all three.
+
+* **Incident lead** — owns the decisions: the severity (and any change to it),
+  priorities, who else gets pulled in, executive escalation, and when the
+  incident is resolved. Keeps the incident record current.
+* **Comms lead** — owns every word stakeholders see: the notify list, the
+  cadence in `CLASSIFICATION.md`, and the emails in `EMAIL_TEMPLATES.md`. One
+  voice, so stakeholders never get two versions of the truth.
+* **Technical lead** — owns containment, diagnosis, and the fix, and reports
+  status to the incident lead rather than to stakeholders directly — so the
+  fix isn't interrupted by the comms, and the comms aren't written from
+  half-finished debugging.
+
+Name who holds each role in the incident record as soon as it's opened.
+
+## Before the next incident — preparation
+
+An incident goes the way it was prepared for. Between incidents:
+
+* **Keep `docs/agents/incident.md` current** — the distribution list, where
+  incidents are logged, any cadence changes (see *First use* above).
+* **Know who can hold each role** — a short rota of people able to act as
+  incident lead and comms lead, so nobody is working out who's in charge at
+  11pm.
+* **Give every critical feed an owner and a runbook** (`PREVENTION.md`).
+* **Rehearse.** A short tabletop exercise each quarter: replay a past incident,
+  or a plausible one ("the finance mart double-counted for a week"), and
+  check the team can walk lineage to a notify list, pick a severity, and send
+  the first notice within the D1 window.
+
 ## Workflow
 
 Work the incident in this order. For D3/D4 several steps collapse onto one person;
