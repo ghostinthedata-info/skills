@@ -54,11 +54,28 @@ source justifies the control and survives audits.
   **production masking** (dynamic, per-role views) from **non-production
   masking** (irreversibly de-identify before data ever reaches dev/test — see
   `test-data` if installed; never copy raw PII into lower environments).
+* **Pseudonymised is not anonymised.** Tokenised or hashed output with a
+  mapping table — or any other way back to the person — is still personal
+  data and keeps its tier. The mapping table is restricted, granted
+  separately, and every read of it is audited. Aggregates published as
+  anonymous enforce a minimum group size per dimensional cut: suppress or
+  roll up small cells, or the aggregate re-identifies people.
 * **Encryption** — protect data **at rest** and **in transit**; manage keys
   separately from data. Required for regulated tiers.
 * **Auditing** — log access and changes to sensitive data: who saw/changed
   what, when. Monitoring usage is part of the control, not an afterthought —
   it's how you prove compliance and detect misuse.
+
+* **Retention & deletion** — give each dataset a retention period, justified
+  by the same requirement source as its tier, and pick the clock on purpose:
+  event date for operational data, load date for archives (under an event-date
+  clock, history backfilled last week can be purged at once). At expiry,
+  delete or anonymise. Legal holds override deletion, so delete jobs check
+  for an active hold first.
+* **Every copy** — controls follow the data, not the warehouse. List each
+  place a classified dataset lands (landing zone, archive, cache, serving
+  store, extracts, backups) and apply the tier's controls and retention in
+  each.
 
 Match the control to the tier: don't encrypt-and-audit public data, and never
 leave restricted data on access alone.
@@ -69,6 +86,8 @@ leave restricted data on access alone.
   re-classify when models join restricted with innocuous columns (a join can
   re-identify).
 * **Person-level grants** — ungovernable; use roles.
+* **Calling tokenised data anonymous** — if a mapping exists, it's
+  pseudonymised and still regulated.
 * **Raw PII in dev/test** — the most common breach path. De-identify on the
   way down.
 * **Security as a final gate** — bolt-on access rules after a model ships.
@@ -77,9 +96,10 @@ leave restricted data on access alone.
 ## Deliver
 
 A classification per dataset/column (tier + requirement source + steward), and
-the matched controls: roles/grants, which columns are masked and how,
-encryption posture, and what is audited. Record the classification as metadata
-so downstream models inherit it.
+the matched controls: roles/grants, which columns are masked and how
+(pseudonymised or anonymised), encryption posture, what is audited, retention
+and deletion, and every location the data lands. Record the classification as
+metadata so downstream models inherit it.
 
 ## Where to record it (templates)
 
