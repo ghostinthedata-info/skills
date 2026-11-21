@@ -16,6 +16,8 @@ the plugin manifest can't drift apart again (GitHub issue #1):
   paths        a backticked file name inside a skill matches a real file
   references   a soft reference to another skill names a published skill
   reachable    every file in a published skill is reachable from SKILL.md
+  installer    drafts carry `metadata: internal: "true"` so `npx skills add`
+               hides them; published skills don't, so it offers them
 
 Usage:
   python3 scripts/check_governance.py [--root DIR]
@@ -78,6 +80,10 @@ MAX_NAME = 64
 MAX_DESCRIPTION = 1024
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+# `metadata: internal: "true"` (or true / "1") in a SKILL.md: the flag the
+# skills CLI (`npx skills add`) reads to hide a skill. parse_frontmatter
+# flattens the nested map to text such as `internal: "true"`.
+INTERNAL_RE = re.compile(r"(?:^|\s)internal:\s*[\"']?(?:true|1)[\"']?(?:\s|$)")
 FENCE_RE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 LINK_RE = re.compile(r"!?\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
 CODE_SPAN_RE = re.compile(r"(`+)(.+?)\1")
@@ -395,6 +401,17 @@ def check_frontmatter(root, skills, report):
                            f"name `{name}` is also used by {seen[name]}")
             else:
                 seen[name] = where
+        # Errors even for drafts: this decides what people can install.
+        internal = bool(INTERNAL_RE.search(s.meta.get("metadata", "")))
+        if s.published and internal:
+            report.add("installer", where,
+                       "published skill is marked `metadata: internal`, so "
+                       "`npx skills add` hides it; remove the flag")
+        elif not s.published and not internal:
+            report.add("installer", where,
+                       "draft isn't marked internal, so `npx skills add` offers it to "
+                       "everyone; add `metadata:` with `internal: \"true\"` to its "
+                       "frontmatter")
 
 
 def load_json(root, relpath, report, check):

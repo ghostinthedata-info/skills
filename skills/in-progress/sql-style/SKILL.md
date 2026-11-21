@@ -1,6 +1,8 @@
 ---
 name: sql-style
 description: Write portable, readable SQL in the house style — layer-prefixed model names (stg_, dim_, fct_), lowercase snake_case columns with role suffixes (_id, _at, _date) and is_/has_ booleans, one name and one type per attribute everywhere, standard syntax, constraints in the schema, and comments that carry the context the code can't. Use when establishing SQL conventions for a repo, reviewing query craft, or naming tables and columns.
+metadata:
+  internal: "true"
 ---
 
 # SQL Style

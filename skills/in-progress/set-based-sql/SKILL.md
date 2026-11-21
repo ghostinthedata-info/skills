@@ -1,6 +1,8 @@
 ---
 name: set-based-sql
 description: Think in sets, not loops — replace cursors and row-by-row procedural code with declarative constraints, window functions, GROUPING SETS/CUBE/ROLLUP, CASE, set operations, and auxiliary tables. Use when SQL is being written procedurally, a transform loops over rows, or a query could be expressed declaratively.
+metadata:
+  internal: "true"
 ---
 
 # Set-Based SQL

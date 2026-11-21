@@ -16,7 +16,9 @@ organized into bucket folders under `skills/`:
 Every skill in `data-engineering/`, `management/`, `productivity/`, or
 `setup/` must have a reference in the top-level `README.md` and an entry in
 `.claude-plugin/plugin.json`. Skills in `in-progress/` must not appear in
-either until promoted out of that folder.
+either until promoted out of that folder, and each carries `metadata:` with
+`internal: "true"` in its frontmatter, so `npx skills add` (the README's
+installer) hides it too. Remove the flag when you promote a skill.
 
 Each skill entry in the top-level `README.md` must link the skill name to
 its `SKILL.md`. A skill's folder name must equal the `name` in its

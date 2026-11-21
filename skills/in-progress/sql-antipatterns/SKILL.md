@@ -1,6 +1,8 @@
 ---
 name: sql-antipatterns
 description: Recognise and avoid the common SQL schema and query design traps — comma-separated lists, adjacency-only trees, missing foreign keys, EAV, polymorphic associations, FLOAT money, SELECT *, unplanned indexes, and broken NULL logic. Use when designing a schema, reviewing a migration, or diagnosing a query that's slow, wrong, or impossible to constrain.
+metadata:
+  internal: "true"
 ---
 
 # SQL Antipatterns

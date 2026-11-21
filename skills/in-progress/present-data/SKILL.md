@@ -1,6 +1,8 @@
 ---
 name: present-data
 description: Turn analysis into a decision — work in the explanatory (not exploratory) space, lock Who/What/How, lead with the Big Idea, choose the right visual, declutter, and direct attention so the audience acts. Use when presenting results, building a dashboard, writing an analytical summary, or whenever a chart needs to drive a decision rather than just show numbers.
+metadata:
+  internal: "true"
 ---
 
 # Present Data

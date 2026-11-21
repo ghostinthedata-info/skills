@@ -21,8 +21,12 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import check_governance as cg  # noqa: E402
 
 
-def skill_md(name, description="Does a thing. Use when testing.", body=""):
-    return f"---\nname: {name}\ndescription: {description}\n---\n\n# {name}\n\n{body}"
+def skill_md(name, description="Does a thing. Use when testing.", body="", extra=""):
+    return f"---\nname: {name}\ndescription: {description}\n{extra}---\n\n# {name}\n\n{body}"
+
+
+# How a draft hides itself from `npx skills add`.
+INTERNAL = 'metadata:\n  internal: "true"\n'
 
 
 class FixtureRepo:
@@ -39,7 +43,9 @@ class FixtureRepo:
     def __init__(self):
         self.root = Path(tempfile.mkdtemp(prefix="gov-test-"))
         for (bucket, name), body in self.SKILLS.items():
-            self.write(f"skills/{bucket}/{name}/SKILL.md", skill_md(name, body=body))
+            extra = INTERNAL if bucket in cg.DRAFT_BUCKETS else ""
+            self.write(f"skills/{bucket}/{name}/SKILL.md",
+                       skill_md(name, body=body, extra=extra))
         buckets = "\n".join(f"* `{b}/`" for b in cg.PUBLISHED_BUCKETS + cg.DRAFT_BUCKETS)
         self.write("CLAUDE.md", f"# Governance\n\n{buckets}\n")
         self.write("CONTEXT.md", f"# Context\n\n{buckets}\n")
@@ -232,7 +238,7 @@ class GovernanceTest(unittest.TestCase):
 
     def test_broken_link_in_draft_only_warns(self):
         self.repo.write("skills/in-progress/draft-one/SKILL.md",
-                        skill_md("draft-one", body="[gone](./GONE.md)"))
+                        skill_md("draft-one", body="[gone](./GONE.md)", extra=INTERNAL))
         report = self.repo.run()
         self.assertClean(report)
         self.assertFlags(report, "links", "broken link `./GONE.md`", level="warnings")
@@ -284,9 +290,11 @@ class GovernanceTest(unittest.TestCase):
         self.assertFlags(self.repo.run(), "references", "`draft-one` is a draft")
 
     def test_drafts_may_reference_each_other(self):
-        self.repo.write("skills/in-progress/draft-two/SKILL.md", skill_md("draft-two"))
+        self.repo.write("skills/in-progress/draft-two/SKILL.md",
+                        skill_md("draft-two", extra=INTERNAL))
         self.repo.write("skills/in-progress/draft-one/SKILL.md",
-                        skill_md("draft-one", body="Pairs with `draft-two` if installed."))
+                        skill_md("draft-one", body="Pairs with `draft-two` if installed.",
+                                 extra=INTERNAL))
         report = self.repo.run()
         self.assertClean(report)
         self.assertEqual(report.warnings, [])
@@ -319,6 +327,26 @@ class GovernanceTest(unittest.TestCase):
         self.repo.write("skills/management/beta/SKILL.md",
                         skill_md("beta", body="Use the `docx` skill to convert."))
         self.assertClean(self.repo.run())
+
+    # what `npx skills add` offers --------------------------------------------
+
+    def test_draft_must_be_hidden_from_the_installer(self):
+        self.repo.write("skills/in-progress/draft-one/SKILL.md", skill_md("draft-one"))
+        self.assertFlags(self.repo.run(), "installer", "draft isn't marked internal")
+
+    def test_published_skill_must_not_be_hidden(self):
+        self.repo.write("skills/data-engineering/alpha/SKILL.md",
+                        skill_md("alpha", extra=INTERNAL))
+        self.assertFlags(self.repo.run(), "installer", "published skill is marked")
+
+    def test_internal_flag_spellings(self):
+        for value in ("true", '"true"', "'1'"):
+            self.repo.write("skills/in-progress/draft-one/SKILL.md",
+                            skill_md("draft-one", extra=f"metadata:\n  internal: {value}\n"))
+            self.assertClean(self.repo.run())
+        self.repo.write("skills/in-progress/draft-one/SKILL.md",
+                        skill_md("draft-one", extra='metadata:\n  internal: "false"\n'))
+        self.assertFlags(self.repo.run(), "installer", "draft isn't marked internal")
 
     # files git ignores ------------------------------------------------------
 

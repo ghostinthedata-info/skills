@@ -29,7 +29,9 @@ Agree these with the user before writing anything:
   pack's core), `management/`, `productivity/`, `setup/`, and `in-progress/`
   for drafts.
 * Start new skills in `in-progress/` unless the user says otherwise. Drafts
-  stay out of `README.md` and `plugin.json` until they're promoted.
+  stay out of `README.md` and `plugin.json` until they're promoted, and carry
+  `metadata:` with `internal: "true"` in their frontmatter so `npx skills add`
+  doesn't offer them.
 * The folder name equals the `name` in the frontmatter: lowercase letters,
   digits and single hyphens, at most 64 characters, unique in the repo, and
   not a name listed in `RETIRED_SKILLS`.
@@ -71,13 +73,15 @@ so it does the triggering; the body never gets the chance.
 
 For a published skill:
 
-1. Add `- **[<name>](skills/<bucket>/<name>/SKILL.md)** — <one line>` under
+1. Promoting a draft? Move it out of `in-progress/` and delete its
+   `metadata: internal` flag.
+2. Add `- **[<name>](skills/<bucket>/<name>/SKILL.md)** — <one line>` under
    the right heading in `README.md`.
-2. Add `./skills/<bucket>/<name>` to the `skills` array in
+3. Add `./skills/<bucket>/<name>` to the `skills` array in
    `.claude-plugin/plugin.json`.
-3. If you renamed or removed a skill, add the old name to `RETIRED_SKILLS` in
+4. If you renamed or removed a skill, add the old name to `RETIRED_SKILLS` in
    `scripts/check_governance.py`, with where its content went.
-4. Run `python3 scripts/check_governance.py` and
+5. Run `python3 scripts/check_governance.py` and
    `python3 -m unittest discover -s scripts/tests`. Both must pass.
 
 ## 6. Read it back cold
