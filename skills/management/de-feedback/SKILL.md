@@ -52,7 +52,7 @@ The point is an *honest* evaluation, which requires real evidence, not vibes. Fo
 
 - If the initiator already pasted evidence (PRs, incident write-ups, project descriptions, peer comments, examples of work), mine it first and map each piece to the relevant skill.
 - Only ask clarifying questions for skills where evidence is **absent or ambiguous**. Don't re-ask what you already know.
-- Prefer specifics: "Tell me about a time they…", "What did they do when the pipeline broke at 2am?", "Show me a PR you thought was strong / weak." Use the `ask_user_input_v0` tool for closed questions; use prose for open ones.
+- Prefer specifics: "Tell me about a time they…", "What did they do when the pipeline broke at 2am?", "Show me a PR you thought was strong / weak." For closed questions, use your structured question or multiple-choice tool if you have one; use prose for open ones.
 - A skill with no evidence is rated **"Insufficient evidence"** — never guessed. Flag these so the initiator can go observe.
 
 Guard against bias: anchor each rating to a behaviour in the rubric, not to overall impression (halo/horns). Recency, likeability, and "reminds me of myself" are not data.
