@@ -60,10 +60,10 @@ so it does the triggering; the body never gets the chance.
 * **Self-sufficient.** The skill completes its core decision on its own.
   Mention other skills as soft references — "(see `test-data` if installed)".
 * **Per-repo config** (platform, tooling, tracker, labels) comes from
-  `docs/agents/*.md`. If the skill can't produce correct output without it,
-  add one line pointing to `setup-ghost-skills`
-  (`docs/adr/0001-explicit-setup-pointer-only-for-hard-dependencies.md`);
-  otherwise read the files when they exist and carry on when they don't.
+  `docs/agents/*.md`. If the skill can't produce correct output without it —
+  it publishes tickets or applies labels — add one line pointing to
+  `/setup-ghost-skills`; otherwise read the files when they exist and carry on
+  when they don't. A setup pointer in every skill is noise.
 * **Scripts for repeatable mechanics.** Validation or formatting that would be
   re-derived on every run belongs in a script in the skill folder.
 

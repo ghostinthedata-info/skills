@@ -19,3 +19,8 @@ __pycache__/
 .DS_Store
 node_modules/
 *.log
+
+# Repo-building material, kept local: the ADRs, this repo's own agent
+# config, and the eval suite
+docs/
+evals/

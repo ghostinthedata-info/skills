@@ -29,8 +29,10 @@ genuinely engine-specific (performance tuning), keep a tool-agnostic spine in
 `SKILL.md` and put engine detail in optional per-engine reference files.
 Cross-skill references must be **soft
 references** (see `CONTEXT.md` for the definition); every skill must remain
-self-sufficient for its core decision. The setup-pointer convention is
-recorded in `docs/adr/0001-explicit-setup-pointer-only-for-hard-dependencies.md`.
+self-sufficient for its core decision. Only a skill that can't produce
+correct output without the per-repo config (`to-tickets`, `triage`) carries an
+explicit "run `/setup-ghost-skills`" line; the rest read the config when it
+exists and carry on when it doesn't.
 
 ## Checks
 
@@ -41,6 +43,11 @@ push to `main` and every pull request, with its unit tests
 (`python3 -m unittest discover -s scripts/tests`). Run both before pushing.
 When you rename, merge, or remove a skill, add the old name to
 `RETIRED_SKILLS` in the script so stale references to it fail the check.
+
+Behaviour is tested separately, in an eval suite kept local (`evals/` is
+git-ignored, like `docs/`: repo-building material isn't published). If it's
+present, run a changed skill's case with `claude plugin eval` before pushing,
+and see `evals/README.md` for re-running it when a new model ships.
 
 ## Agent skills
 
