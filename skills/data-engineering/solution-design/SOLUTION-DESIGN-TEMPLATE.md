@@ -67,24 +67,40 @@ delivery = green. Reference how the pattern-bank phases flow.]
 
 ## 3. Tasks & steps
 
-[Group into themed 1-5 day stories, never longer. Each story = one day's coherent
-work with subtasks and a definition of done. Note the handover / pick-up point.]
+**Estimate basis:** [N known patterns — sized from actual past timings] ·
+[M known with caveats — name each, with its buffer or spike] · [K novel —
+time-boxed discovery; re-estimate after the proof of concept]
 
-### Day 1 · [Story title — e.g. Environment & Access Setup]
+[Group into themed stories of about one effort-day each, at most five per
+slice. Each story has subtasks, a definition of done, and a handover. Effort
+isn't calendar time — the waiting happens at the seams below.]
+
+### Story 1 · [title — e.g. Environment & Access Setup] · effort ≈1d
 - [ ] [Subtask]
 - [ ] [Subtask]
-**Done when:** [definition of done] · **Hands to:** [next story / person]
+**Done when:** [definition of done — another engineer could pick it up
+tomorrow with no conversation] · **Hands to:** [next story / person]
 
-### Day 2 · [Story title — e.g. Ingest Build & Test Run]
+### Story 2 · [title — e.g. Ingest Build & Ship to Production] · effort ≈1d
 - [ ] [Subtask]
-**Done when:** […] · **Hands to:** […]
+**Done when:** [real batches land where production builds can see them] ·
+**Hands to:** […]
 
-### Day 3 · [Story title — e.g. Transformation & Data Quality]
+### Story 3 · [title — e.g. Transformation & Data Quality] · effort ≈1d
 - [ ] [Subtask]
 **Done when:** […]
 
-[Add days as needed — heavier ingestion (CDC/replication) or prod cadence may
-warrant a 5th. Never bundle more than 5 days into one slice.]
+[Add stories as needed — heavier ingestion (CDC/replication) may warrant a
+5th. Never bundle more than 5 stories into one slice.]
+
+### Seams — where elapsed time accumulates
+
+| From → To | Handover (what crosses) | Waiting on | Elapsed estimate | Owner |
+|---|---|---|---|---|
+| [Ingest → Transformation] | [staging table, its contract, known quirks] | [first real batches in production] | [e.g. 3 days] | [name] |
+
+**Estimate:** effort (sum of stories) + elapsed time at the seams, estimated
+separately.
 
 ---
 
@@ -123,4 +139,10 @@ Scope changes mid-slice get added here rather than absorbed.]
 - [ ] Grain holds: one row per [grain], uniqueness tested.
 - [ ] Freshness SLA met: data available by [time].
 - [ ] Definitions match: [metric] computed per the agreed definition.
+- [ ] Idempotent: running the load twice on the same input leaves row counts
+      and checksums unchanged.
+- [ ] Rebuildable: the table rebuilds from raw in one command, and the
+      incremental result matches a full rebuild.
+- [ ] Business validation ran on real production history (fabricated rows
+      only in unit tests).
 - [ ] [Historization, reliability, latency criteria as applicable.]

@@ -50,6 +50,9 @@ capture them here, per pipeline, not in repo-wide config)
   need SCD2 (see `data-modelling` if installed; the core rule:
   new row per change, validity interval, current flag). If not, don't pay
   for it.
+* Do they need what was *known* at the time — how a record was categorised
+  when it was processed, even after later corrections or rule changes? That's
+  bi-temporal (event time and processing time), not SCD2. Ask explicitly.
 
 ## Deliver
 A one-page spec: purpose, consumers, **grain (bold)**, sources + caveats,

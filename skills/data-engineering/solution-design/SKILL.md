@@ -47,6 +47,9 @@ it's nailed.
 Use `ENGINEERING-STEPS.md` (ingestion stage) for the full checklist.
 Leave knowing, per source:
 
+* **Owner** — a named person, not a team or channel, accountable for the
+  source's quality, availability, and definitions — and how they announce
+  changes.
 * **Authority** — is this the *agreed source of truth*? If two systems disagree,
   who wins? **Internal or vendor?** (Vendor changes escalation paths, achievable
   SLAs, and schema-change trust.)
@@ -77,15 +80,28 @@ people never compute the same metric two ways.
 
 ## Step 6 — Historization
 
-Do consumers need point-in-time / "as it was when…" answers? If yes, you need
-SCD2 (new row per change, validity interval, current flag). If not, don't pay
-for it. Requires full source history (see Step 3 initial load).
+Ask three questions — they lead to different patterns:
+
+1. **Current state only?** → overwrite (SCD1).
+2. **The value as it was on a past date?** → SCD2 (new row per change,
+   validity interval, current flag). Requires full source history (see Step 3
+   initial load).
+3. **What was known — or how a record was categorised — at processing time,
+   even after later corrections or rule changes?** → bi-temporal: keep both
+   event/valid time and processing time. Ask this one explicitly; it changes
+   the transformation pattern significantly.
+
+If none applies, don't pay for history.
 
 ## Step 7 — Choose the pattern recipe
 
 Assemble the recipe from `PIPELINE-PATTERNS.md`: one ingestion
 pattern + the transformation pattern + one or more delivery patterns. This
 becomes the SVG overview in the design doc.
+
+Tag each part of the recipe with an effort signal: **known** (built before,
+with actual timings), **known with caveats** (name the caveat — e.g. "the
+source sends no delivery receipt"), or **novel**.
 
 ## Step 8 — Produce the solution design
 
@@ -95,14 +111,22 @@ Fill `SOLUTION-DESIGN-TEMPLATE.md`:
 2. **Overview (hand-authored inline SVG)** — source → ingestion → transform →
    delivery, focused on high-level tools/patterns, using the zone colours in the
    template. Model the phases on the pattern-bank flow.
-3. **Tasks & steps** — broken into **1-5 day** work packages, never longer, each
-   a single themed "story" with subtasks (e.g. "Day 1 · Environment & Access
-   Setup"). Draw tasks from `ENGINEERING-STEPS.md`. This is how we
-   space delivery and estimate time.
+3. **Tasks & steps** — themed stories of about one effort-day each, at most
+   five per slice, with subtasks and an explicit handover (e.g. "Story 1 ·
+   Environment & Access Setup"). Draw tasks from `ENGINEERING-STEPS.md`.
+   Size known parts from actual past timings; give each caveat an explicit
+   buffer or an early spike; give a novel component one time-boxed discovery
+   story with an exit question, and re-estimate after the proof of concept —
+   don't break novel work into days. Then walk the seams: what each stage
+   hands the next, and who is waiting on whom. The estimate is effort plus
+   elapsed time at the seams, estimated separately — overruns happen at the
+   seams.
 4. **Decisions register** — every material decision, why, alternatives, date,
    owner (official format in the template).
 5. **Dependencies & risks** — reference `COMMON-RISKS.md`; list only
    the relevant ones plus any project-specific additions.
+6. **Acceptance criteria** — explicit and testable, including the
+   idempotency and rebuild checks.
 
 Deliver in thin vertical slices. Don't accept ad-hoc scope changes mid-slice —
 route them through the decisions register instead.

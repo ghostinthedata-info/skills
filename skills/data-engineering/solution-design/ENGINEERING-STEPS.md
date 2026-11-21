@@ -5,8 +5,9 @@ the **Tasks & steps** section of the design, grouped into 1-5 day stories. Not
 every task applies to every recipe — delete what the pattern doesn't need.
 
 A task is **done** when it's deployed via code (not hand-built), tested, and
-hands cleanly to the next stage. Each story should name an explicit handover /
-pick-up point.
+hands cleanly to the next stage — another engineer could pick it up tomorrow
+with no conversation. Each story should name an explicit handover / pick-up
+point.
 
 ---
 
@@ -24,9 +25,13 @@ pick-up point.
 * **Delta & delete handling** — confirm soft vs hard delete behaviour; ensure
   deletes are captured or explicitly accepted as out-of-scope. *Done:* a deleted
   source record produces the agreed result downstream.
-* **Data contract** — schema/type/null expectations validated on ingest. *Done:*
-  a schema drift triggers the agreed action (fail/quarantine/alert).
-* **Managed load to raw** — pipe/loader into the raw layer. *Done:* landed data
+* **Completeness on arrival** — check what landed against the source's
+  manifest or delivery receipt (file present, row count, checksum where
+  offered); hold partial deliveries. A source with no receipt is extra effort
+  and risk — say so in the estimate. *Done:* a truncated delivery is held, not
+  loaded.
+* **Managed load to raw** — a managed loader into the raw layer. Raw stays raw:
+  no type conversion, dedupe, or business logic here. *Done:* landed data
   appears in raw with lineage/load metadata.
 * **Backfill / replay** — initial day-zero load and a documented replay path for
   missed days. *Done:* you can re-run a past window and get identical results.
@@ -35,6 +40,10 @@ pick-up point.
 
 * **Staging models** — type-cast, rename, dedupe to source grain. *Done:* one row
   per declared grain, tested.
+* **Data contract** — schema/type/null expectations checked against the typed
+  staging output (checking before typing surfaces violations where the
+  pipeline can't handle them). *Done:* a schema drift triggers the agreed
+  action (fail/quarantine/alert).
 * **Intermediate/business logic** — joins, metric definitions per the agreed
   ubiquitous language. *Done:* metrics match the documented definitions exactly.
 * **Historization** — SCD2 / snapshot if point-in-time is required. *Done:*
@@ -55,6 +64,13 @@ pick-up point.
 
 ## Cross-cutting (every story)
 
+* **Idempotency** — every load gives the same result whether it runs once or
+  ten times (retry, double trigger, rerun), with no manual pre-steps. Replace
+  whole partitions or windows, or merge on the declared grain key; never
+  blind-append. *Done:* a test runs the load twice on the same input and row
+  counts and checksums don't change.
+* **Rebuildability** — any table rebuilds from raw in one command, and the
+  incremental result is checked against a full rebuild so it can't drift.
 * **CI/CD** — everything deployed from version control, not the console.
 * **Security** — bucket policies, network controls, permission boundaries.
 * **Documentation** — model docs + the decisions register kept current.

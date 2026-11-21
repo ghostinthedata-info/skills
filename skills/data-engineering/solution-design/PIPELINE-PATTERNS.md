@@ -22,10 +22,12 @@ Complexity is a cost paid forever; only buy it when a consumer need demands it.
 | **Streaming ingest** | Continuous event stream consumed to raw | True real-time events; high volume; append-mostly |
 | **Push / webhook** | Source pushes events to an endpoint you expose | Source controls cadence; bursty; you can't poll |
 
-Every ingestion pattern shares a **common load block**: landing zone → managed
-ingest into the raw/warehouse layer (e.g. a pipe), with archiving, failed-row
-routing, and a data contract check. Capture per-source delta cadence, delete
-semantics, and replay/backfill behaviour here (see skill Step 3).
+Every ingestion pattern shares a **common load block**: landing zone (raw
+stays raw — no typing or logic) → completeness check against the source's
+manifest or receipt → managed ingest into the raw/warehouse layer, with
+archiving and failed-row routing. Types and the data contract are applied
+later, in staging. Capture per-source delta cadence, delete semantics, and
+replay/backfill behaviour here (see skill Step 3).
 
 ## Stage 2 — Transformation (raw → modelled)
 
@@ -49,16 +51,26 @@ semantics, and replay/backfill behaviour here (see skill Step 3).
 
 ## Sequencing into day-sized work
 
-Group the recipe's tasks into themed **1-5 day stories**, never longer. Typical
-shape for an ingestion-led pipeline (adjust to the recipe and engineer level):
+Group the recipe's tasks into themed stories of about one effort-day each, at
+most five per slice. Effort isn't calendar time: waiting accumulates at the
+seams between stories (reviews, batch windows, other teams, sign-offs), so
+estimate it separately. Typical shape for an ingestion-led pipeline (adjust to
+the recipe and engineer level):
 
-* **Day 1 · Environment & Access Setup** — IAM/roles, secrets, landing zone.
-* **Day 2 · Ingest Build & Test Run** — the chosen ingestion pattern end to end.
-* **Day 3 · Transformation & Data Quality** — models + WAP/DQ checks.
-* **Day 4 · Delivery & Notification** — the chosen delivery pattern + alerts.
-* **Day 5 (heavier patterns) · Hardening & Prod Cadence** — replication/CDC
-  setup or prod deployment with wait-for-batch constraints.
+* **Story 1 · Environment & Access Setup** — IAM/roles, secrets, landing zone.
+* **Story 2 · Ingest Build & Ship to Production** — the chosen ingestion
+  pattern end to end, deployed. Data ships before code: transformation doesn't
+  start until real batches land where production builds can see them. The
+  wait for those batches is a seam.
+* **Story 3 · Transformation & Data Quality** — models + WAP/DQ checks,
+  validated on real production history (fabricated rows belong in unit tests
+  only).
+* **Story 4 · Delivery & Notification** — the chosen delivery pattern + alerts.
+* **Story 5 (heavier patterns) · Hardening & Hypercare** — replication/CDC
+  setup and prod cadence, then a hypercare window.
 
-A senior engineer may compress days 1–2; a newer one may split further. Heavier
-ingestion (CDC/replication) genuinely needs extra setup time — say so in the
-estimate rather than hiding it.
+A senior engineer may compress stories 1–2; a newer one may split further.
+Heavier ingestion (CDC/replication) genuinely needs extra setup time — say so
+in the estimate rather than hiding it. Only break a pattern into day-sized
+stories once the team has built it before; a novel one starts as a time-boxed
+proof of concept.
