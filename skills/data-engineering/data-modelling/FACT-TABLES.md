@@ -16,8 +16,13 @@ can't drill down. Never mix grains in one table.
 ## The three fact-table types
 
 * **Transaction** — one row per measurement event. Most common and atomic;
-  rows are **inserted, never updated**. Default to this. In Snowflake, load
-  via `COPY INTO` / Snowpipe append; an insert-only stream is ideal.
+  rows are **never updated in place**. Default to this. Load idempotently:
+  replace the whole batch-date partition (delete-then-insert, or a partition
+  overwrite) instead of blind-appending, so a re-run can't double-count. Keep
+  the batch date and the event timestamp on every row, reconcile source vs
+  target row counts per batch, and left-anti-join to catch rows that didn't
+  land. In Snowflake, land via `COPY INTO` / Snowpipe, then replace the
+  partition.
 * **Periodic snapshot** — one row per entity per regular period (daily
   balance, monthly state). Dense — a row exists each period whether or not
   anything changed. Generate with a date spine cross-joined to entities.
@@ -88,8 +93,15 @@ fact row** for grouping and lineage. Don't build a single-column table for it.
 * FKs to dimensions are **surrogate keys** (see [KEYS.md](./KEYS.md) for the
   full business/surrogate/composite/durable decision rules); never join facts
   on natural keys.
-* Every FK points at a real row — route unknowns to the dimension's
-  ghost/"unknown" row (key `-1`) so a fact is never dropped on join.
+* Against an SCD2 dimension, the FK is the surrogate of the version **in effect
+  at the event's business timestamp** (durable key match,
+  `event_ts >= VALID_FROM AND event_ts < VALID_TO`) — not the current row's,
+  or point-in-time answers depend on when the load ran. Late-arriving facts
+  then get the historical version. For current-state reporting, join on the
+  durable key to the current row instead.
+* Every FK points at a real row — route unknowns (including events no version
+  covers) to the dimension's ghost/"unknown" row (key `-1`) so a fact is never
+  dropped on join, and count how many land there.
 * No descriptive text on the fact (belongs on a dimension); no measures on a
   dimension.
 * `NULL` is fine for a missing **measure**; never allowed in a **foreign

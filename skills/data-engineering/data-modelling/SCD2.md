@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS DIM_CUSTOMER_HST (
     VALID_FROM      TIMESTAMP_NTZ NOT NULL,
     VALID_TO        TIMESTAMP_NTZ NOT NULL DEFAULT '9999-12-31'::TIMESTAMP_NTZ,
     IS_CURRENT      BOOLEAN      NOT NULL DEFAULT TRUE,
-    ROW_HASH        VARCHAR                          -- change-detection hash
+    ROW_HASH        VARCHAR,                         -- change-detection hash
+    LOAD_TS         TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()  -- audit only, never validity
 );
 ```
 
@@ -47,26 +48,40 @@ the new.
 
 ## Load — close-and-insert MERGE
 
+Take validity from the **source, never the load clock**: `VALID_FROM` is when
+the change happened (the source's change timestamp, or the snapshot date for a
+snapshot source). Validity stamped with `CURRENT_TIMESTAMP()` depends on when
+the job ran, so it can never be reproduced — the same flaw that rules out dbt
+snapshots below. The load's own time goes only in `LOAD_TS`.
+
+Before loading, reduce the batch to **one row per key** — the latest change,
+with timestamp ties broken by a deterministic source sequence (log position,
+ingest offset) — or apply the batch's changes in order. Otherwise the `MERGE`
+fails or opens two current rows. A **back-dated** change (older than the
+current row's `VALID_FROM`) can't be placed by close-and-insert: route that
+key to a heal ([BACKFILLING.md](./BACKFILLING.md)).
+
 A single `MERGE` can't both update the expiring row and insert the new one for
 the same key, so the standard Snowflake pattern is two steps: (1) `MERGE` to
 **close** changed current rows, (2) `INSERT` the new versions. Wrap in a
 transaction.
 
 ```sql
+-- STG_CUSTOMER: one row per CUSTOMER_BK, with CHANGED_AT taken from the source
 -- Step 1: expire current rows whose hash changed
 MERGE INTO DIM_CUSTOMER_HST tgt
 USING ( SELECT s.*, <hash expr> AS ROW_HASH FROM STG_CUSTOMER s ) src
    ON  tgt.CUSTOMER_BK = src.CUSTOMER_BK
    AND tgt.IS_CURRENT  = TRUE
 WHEN MATCHED AND tgt.ROW_HASH IS DISTINCT FROM src.ROW_HASH THEN
-   UPDATE SET tgt.VALID_TO   = CURRENT_TIMESTAMP(),
+   UPDATE SET tgt.VALID_TO   = src.CHANGED_AT,   -- closes exactly where the new version opens
               tgt.IS_CURRENT = FALSE;
 
 -- Step 2: insert new versions (new keys + changed keys)
 INSERT INTO DIM_CUSTOMER_HST
    (CUSTOMER_BK, CUSTOMER_NAME, REGION, VALID_FROM, VALID_TO, IS_CURRENT, ROW_HASH)
 SELECT src.CUSTOMER_BK, src.CUSTOMER_NAME, src.REGION,
-       CURRENT_TIMESTAMP(), '9999-12-31'::TIMESTAMP_NTZ, TRUE, src.ROW_HASH
+       src.CHANGED_AT, '9999-12-31'::TIMESTAMP_NTZ, TRUE, src.ROW_HASH
 FROM ( SELECT s.*, <hash expr> AS ROW_HASH FROM STG_CUSTOMER s ) src
 LEFT JOIN DIM_CUSTOMER_HST cur
        ON cur.CUSTOMER_BK = src.CUSTOMER_BK AND cur.IS_CURRENT = TRUE
@@ -84,12 +99,18 @@ the Healing-Table approach in [BACKFILLING.md](./BACKFILLING.md) instead.
 
 ## Validate after every load (block on failure)
 
-* Exactly **one current row** per durable key
-  (`COUNT(*) WHERE IS_CURRENT GROUP BY CUSTOMER_BK HAVING COUNT(*)>1` → empty).
+* Exactly **one current row** per durable key — count over *all* rows, so a key
+  with no current row is caught too
+  (`GROUP BY CUSTOMER_BK HAVING SUM(IFF(IS_CURRENT, 1, 0)) <> 1` → empty).
+* The current flag agrees with the high date
+  (`IS_CURRENT` exactly when `VALID_TO = '9999-12-31'`).
+* `(CUSTOMER_BK, VALID_FROM)` is unique.
 * **No overlapping** intervals per key (`LEAD(VALID_FROM)` ≥ `VALID_TO`).
 * **No gaps** if continuity is required.
 * `VALID_FROM < VALID_TO` on every row.
-* No **consecutive duplicate** versions (same hash back-to-back).
+* No **consecutive duplicate** versions — same hash **and** contiguous
+  (`VALID_FROM` = the previous `VALID_TO`). Same-hash rows with a gap between
+  them are separate states, not duplicates.
 
 ## Querying point-in-time
 

@@ -174,12 +174,12 @@ Run these before swapping into production (Write-Audit-Publish; see
 `test-data` if installed). Each should return **zero rows**.
 
 ```sql
--- a) exactly one current row per durable key
-SELECT {{durable_key}}, COUNT(*) AS current_rows
+-- a) exactly one current row per durable key — counted over all rows, so a
+--    key with NO current row is caught too (a WHERE is_current filter can't see it)
+SELECT {{durable_key}}, SUM(CASE WHEN is_current THEN 1 ELSE 0 END) AS current_rows
 FROM healed_dim
-WHERE is_current
 GROUP BY {{durable_key}}
-HAVING COUNT(*) <> 1;
+HAVING SUM(CASE WHEN is_current THEN 1 ELSE 0 END) <> 1;
 
 -- b) no overlapping intervals — including two versions that start at the
 --    same instant (the classic duplicate-timestamp defect)
@@ -214,6 +214,10 @@ FROM (
   FROM healed_dim
 ) t
 WHERE row_hash = prev_hash AND valid_from = prev_to;
+
+-- f) the current flag agrees with the open-ended high date
+SELECT * FROM healed_dim
+WHERE is_current <> (valid_to = {{high_date}});
 ```
 
 ---

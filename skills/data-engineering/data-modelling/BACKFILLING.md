@@ -1,7 +1,16 @@
-# Backfilling SCD2 History (Snowflake)
+# Backfilling and Healing SCD2 History (Snowflake)
 
-Use this when you must reconstruct an SCD2 dimension's history from full
-source — not for ongoing incremental loads (that's [SCD2.md](./SCD2.md)).
+Use this to build an SCD2 dimension's history deterministically from full
+source. It isn't only for disaster recovery — three uses:
+
+* **A one-off backfill** or reconstruction of a dimension's history.
+* **The main build** for batch dimensions, when the preconditions below hold.
+* **A scheduled heal** alongside daily incremental loads
+  ([SCD2.md](./SCD2.md)): weekly or monthly, rebuild from source and diff
+  against the incremental table — any difference is drift to investigate
+  before you publish the healed version. A heal also picks up retroactive
+  source corrections, backfills a new attribute across every version, and
+  places back-dated changes that close-and-insert can't.
 
 ## Why not just replay day by day
 
@@ -12,8 +21,19 @@ separates *change detection* from *period construction* and rebuilds the whole
 timeline from source. The result depends only on source data, not on load
 history; fix the logic, reprocess the range, and the dimension "heals."
 
-Use it when you have full source history and rebuild time is acceptable. Keep
-plain incremental for very high volume or real-time.
+**Preconditions** — check each before relying on it:
+
+* **Complete source history.** If the source doesn't keep it, start a
+  persistent staging area now that keeps every extract, partitioned by fetch
+  date.
+* **No hard deletes.** The method assumes deletions are flagged. If the source
+  physically removes rows, capture the deletes first (CDC tombstones or
+  snapshot diffs), or that history is lost.
+* **Contiguous presence.** If an entity can disappear and reappear, close its
+  interval when it's absent from a full snapshot — otherwise `LEAD()` silently
+  stretches the last version across the gap.
+* **Acceptable rebuild time.** Otherwise stay incremental — also the right call
+  for real-time, or when no history exists.
 
 ## The six steps (Snowflake)
 
@@ -81,33 +101,45 @@ Stage the rebuilt timeline in a RAW landing table first, validate it there,
 then promote to HST. This keeps a broken rebuild out of the published table
 and gives you an inspectable artifact:
 
-1. `RAW.DIM_CUSTOMER_BACKFILL` — output of steps 1–5, untrusted.
+1. `RAW.DIM_CUSTOMER_BACKFILL` — output of steps 1–5 run over the landed
+   history (below), untrusted.
 2. Run validation (step 6) against RAW.
 3. On pass, `INSERT`/`SWAP` into `HST.DIM_CUSTOMER_HST`.
 
 ## Partition-level loads with COPY INTO
 
-For large historical source spread across S3, load **month-level partitions**
-rather than one monolithic file — it bounds memory, makes failures
-re-runnable per partition, and parallelises:
+For large historical source in object storage, land the raw history in
+**month-level partitions** rather than one monolithic file — it bounds memory,
+makes failures re-runnable per partition, and parallelises:
 
 ```sql
-COPY INTO RAW.DIM_CUSTOMER_BACKFILL
+COPY INTO RAW.CUSTOMER_HISTORY_LANDING
 FROM @HISTORY_STAGE/customer/history/year=2024/month=03/
 FILE_FORMAT = (TYPE = PARQUET)
 MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE
 ON_ERROR = ABORT_STATEMENT;
 ```
 
-Loop the months, validate each partition's row counts against the profiling
-baseline before promotion, and keep the load idempotent (truncate-and-reload
-the target partition, or dedupe on the key-hash) so a re-run is safe.
+Loop the months, check each landed partition's row counts against the
+profiling baseline, and keep the landing idempotent (truncate-and-reload the
+partition) so a re-run is safe.
+
+**Partition the landing, not the logic.** Steps 1–5 read the landing table and
+run over each key's *whole* history in one pass. Windowing them by month cuts
+`LAG`/`LEAD` at every boundary: each month gets a fake first version and an
+open last one, so you get overlaps and several current rows. If the work must
+be split, split by business key, never by time. And if you dedupe the output,
+dedupe on (key-hash, `VALID_FROM`) — the key-hash alone is one row per entity,
+so deduping on it deletes the history.
 
 ## Checklist
 
 * Rebuilt into a **zero-copy clone**, never live, on the first pass.
 * Staged through **RAW**, validated, then promoted to HST.
-* Loaded by **partition** (e.g. month) with per-partition row-count checks.
+* Raw history **landed** by partition (e.g. month) with per-partition
+  row-count checks; steps 1–5 run over each key's full history, never per month.
+* Preconditions checked: complete history, deletes captured, gaps in presence
+  closed.
 * All six Healing-Table steps applied; result is path-independent.
 * Full [SCD2.md](./SCD2.md) temporal-integrity suite passes before publish.
 * Load is idempotent — a re-run produces an identical table.

@@ -32,6 +32,24 @@ A fuzzy grain is the #1 dimensional-design failure. Ask the questions in the
 **Clarifying questions** section below and wait for answers before emitting
 DDL. The most expensive modeling mistakes are committed silently at this step.
 
+### 1b. If the model already exists, refactor it — don't redesign it
+
+A rewrite throws away the reasons behind every odd filter and join. Refactor
+in small, proven steps instead:
+
+1. List the consumers and the behaviour they depend on (columns, order, null
+   handling, precision).
+2. Find out why each odd filter, join, or Type 2 attribute exists before you
+   touch it — someone usually needed it.
+3. Port the legacy logic unchanged and prove the output matches row for row,
+   column for column. That's the baseline.
+4. Restructure in small steps, diffing against the baseline after each. Don't
+   fix data-quality issues mid-refactor — log them and fix them separately.
+5. For breaking changes, expand (add the new shape), migrate consumers one at
+   a time, then contract (remove the old). Publish through write-audit-publish.
+
+Add the baseline diff to the output contract below.
+
 ### 2. Apply the four-step Kimball process
 
 Summary (dimension techniques, conformed dimensions, and the bus matrix are in
@@ -65,11 +83,13 @@ reach for >90% of the time, use the Snowflake-specific references:
 * [SCD1.md](./SCD1.md) — overwrite (Type 1).
 * [SCD2.md](./SCD2.md) — history rows (Type 2).
 
-### 5. Backfill, if loading history into an SCD2
+### 5. Build, backfill, or heal SCD2 history
 
-Only when you must reconstruct history from full source. See
-[BACKFILLING.md](./BACKFILLING.md) for the
-deterministic, rebuildable (Healing Tables) approach in Snowflake — zero-copy
+With full source history, build SCD2 deterministically — as a one-off
+backfill, as the main build for batch dimensions, or as a scheduled heal
+alongside daily incremental loads. See [BACKFILLING.md](./BACKFILLING.md) for
+the preconditions and the deterministic, rebuildable (Healing Tables)
+approach in Snowflake — zero-copy
 clone test harness, two-step RAW→HST staging, and partition-level loads — and
 [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) for tool-agnostic
 pseudo-SQL of all six steps.
@@ -89,7 +109,8 @@ Ask only the ones not already answered by profiling or the user:
    value *as of a past date*? If yes → Type 2; if only "latest" matters →
    Type 1; if it never changes → Type 0.
 5. **Source history available?** — is full source history present (enables a
-   clean backfill/rebuild), or only current state going forward?
+   clean backfill/rebuild), or only current state going forward? Does the
+   source physically delete rows? Can an entity disappear and reappear?
 6. **Volume & latency** — high-volume/real-time (favours plain incremental)
    or batch with acceptable rebuild time (favours Healing-Table rebuild)?
 7. **Measures** — what gets counted/summed, and is each one additive,
@@ -105,7 +126,7 @@ Ask only the ones not already answered by profiling or the user:
 | [SCD-TYPES.md](./SCD-TYPES.md) | Choosing a history policy per attribute — SCD types 0–7. |
 | [SCD1.md](./SCD1.md) | Overwrite-in-place dimension attributes on Snowflake. |
 | [SCD2.md](./SCD2.md) | History-tracking dimensions, effectivity intervals, validation. |
-| [BACKFILLING.md](./BACKFILLING.md) | Loading/rebuilding history into an SCD2 deterministically. |
+| [BACKFILLING.md](./BACKFILLING.md) | Building, backfilling, or periodically healing SCD2 history deterministically; preconditions. |
 | [HEALING-TABLE-TEMPLATE.md](./HEALING-TABLE-TEMPLATE.md) | Tool-agnostic pseudo-SQL for the six Healing-Table steps. |
 | [FACT-TABLES.md](./FACT-TABLES.md) | Fact grain, the three types, additivity, factless/degenerate. |
 
